@@ -11,11 +11,15 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Home (contoh)
+
+use Illuminate\Support\Facades\Route; // BENAR
+
+Route::get('/home', 'PageController@home')->name('home');
+
+Route::get('/member', 'PageController@member')->name('member');
+
+// MemberGym
 
 
-Route::get('/member', function (){
-    return view('member');
-});
+
