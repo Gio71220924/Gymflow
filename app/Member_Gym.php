@@ -24,6 +24,7 @@ class Member_Gym extends Model
     'end_date',
     'status_membership',
     'notes',
+    'foto_profil',
     ];
 
 }
