@@ -1,3 +1,4 @@
+{{-- resources/views/layouts/main.blade.php --}}
 <!doctype html>
 <html lang="en">
   <head>
@@ -108,44 +109,59 @@
 
       <!-- Konten kanan -->
       <main class="content flex-fill p-4">
-        <!-- (Opsional) Header bar atas ala sample Tailwind bisa di-skip;
-             di sini langsung heading halaman + toolbar -->
+        <!-- Heading halaman -->
         <header class="mb-3">
           <h1 class="h3 font-weight-bold mb-0">
             @yield('page_heading', 'Member Management')
           </h1>
         </header>
 
-        <!-- Toolbar: search/filter kiri, tombol aksi kanan -->
+        <!-- Toolbar opsional (search/filter) -->
         <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
           <div class="d-flex flex-wrap">
-            @yield('toolbar') {{-- tempat search/filter opsional --}}
+            @yield('toolbar')
           </div>
-          <div>
-            @yield('card_actions') {{-- tombol Add dsb --}}
-          </div>
+          <!-- Dikosongkan karena tombol add dipindah ke header card di bawah -->
+          <div></div>
         </div>
 
-        <!-- Card konten utama -->
+        <!-- Card utama berisi judul + aksi + konten -->
         <div class="card shadow-sm">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div>@yield('card_title')</div>
+            <div>@yield('card_actions')</div>
+          </div>
           <div class="card-body">
-            @yield('content') {{-- isi halaman dari child --}}
+            @yield('content')
           </div>
         </div>
       </main>
     </div>
 
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-    <!-- Datatables -->
-    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <!-- jQuery, Popper, Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+            crossorigin="anonymous"></script>
+
+    <!-- DataTables v2 (vanilla) -->
     <script src="https://cdn.datatables.net/2.3.4/js/dataTables.js"></script>
-    <!-- nama datatable harus sama dengan id tabel pada child nya (moviebladephp) -->
+
+    <!-- Auto-init generik: semua table yang punya atribut data-datatable -->
     <script>
-        new DataTable('#membergym');
+      document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('table[data-datatable]').forEach(function (el) {
+          if (!el.dataset.dtInited) {
+            new DataTable(el);
+            el.dataset.dtInited = '1';
+          }
+        });
+      });
     </script>
 
     @yield('scripts')
