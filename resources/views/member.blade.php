@@ -1,4 +1,6 @@
+{{-- resources/views/member.blade.php --}}
 @extends('layouts.main')
+
 @section('title', 'Member Management')
 @section('page_heading', 'Member Management')
 @section('card_title', 'Daftar Member Gym')
@@ -6,13 +8,13 @@
 @section('styles')
 <style>
   .btn-orange{
-    background-color:#FC7753; 
-    border-color:#FC7753; 
+    background-color:#FC7753;
+    border-color:#FC7753;
     color:#fff;
   }
   .btn-orange:hover{
-    background-color:#e96a49; 
-    border-color:#e05f3f; 
+    background-color:#e96a49;
+    border-color:#e05f3f;
     color:#fff;
   }
   .btn-orange:focus, .btn-orange:active{
@@ -31,7 +33,17 @@
 @endsection
 
 @section('content')
-  <table id="membergym" class="table table-striped table-bordered w-100" data-datatable>
+  {{-- Flash success (opsional) --}}
+  @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ session('success') }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  @endif
+
+  <table id="membergym" class="table table-striped table-bordered w-100 mb-0" data-datatable>
     <thead class="thead-light">
       <tr>
         <th>ID</th>
@@ -68,11 +80,25 @@
           <td>{{ $m->end_date }}</td>
           <td>{{ $m->status_membership }}</td>
           <td>{{ $m->notes }}</td>
-          <td>{{ $m->foto_profil }}</td>
+          <td>
+            @if(!empty($m->foto_profil))
+              <img
+                src="{{ asset('storage/foto_profil/' . $m->foto_profil) }}"
+                alt="Foto Profil"
+                width="80" height="80"
+                style="object-fit:cover;border-radius:8px;">
+            @else
+              <img
+                src="{{ asset('storage/foto_profil/noimage.png') }}"
+                alt="No-Foto"
+                width="80" height="80"
+                style="object-fit:cover;border-radius:8px;">
+            @endif
+          </td>
         </tr>
       @empty
         <tr>
-          <td colspan="7" class="text-center text-muted">Belum ada data member.</td>
+          <td colspan="15" class="text-center text-muted">Belum ada data member.</td>
         </tr>
       @endforelse
     </tbody>
