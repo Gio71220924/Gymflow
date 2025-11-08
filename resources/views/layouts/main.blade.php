@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/main.blade.php --}}
 <!doctype html>
 <html lang="en">
   <head>
