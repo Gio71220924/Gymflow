@@ -13,6 +13,11 @@ class PageController extends Controller
 
     public function member()
     {
-        return view('member');
+        return view('member', ['key' => 'member']);
+    }
+
+    public function class()
+    {
+        return view('class', ['key' => 'class']);
     }
 }

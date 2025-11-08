@@ -19,6 +19,8 @@ Route::get('/home', 'PageController@home')->name('home');
 
 Route::get('/member', 'PageController@member')->name('member');
 
+Route::get("/class", "PageController@class")->name("class");
+
 // MemberGym
 
 
