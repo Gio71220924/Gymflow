@@ -48,6 +48,7 @@
         <th>End Date</th>
         <th>Status Membership</th>
         <th>Notes</th>
+        <th>Foto Profil</th>
       </tr>
     </thead>
     <tbody>
@@ -67,6 +68,7 @@
           <td>{{ $m->end_date }}</td>
           <td>{{ $m->status_membership }}</td>
           <td>{{ $m->notes }}</td>
+          <td>{{ $m->foto_profil }}</td>
         </tr>
       @empty
         <tr>
