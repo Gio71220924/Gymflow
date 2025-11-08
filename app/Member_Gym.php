@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Member_Gym extends Model
 {
     //
-    protected $table = 'Member_Gym';
+    protected $table = 'member_Gym';
 
     protected $fillable = [
     'id_member',
