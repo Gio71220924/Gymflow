@@ -12,7 +12,8 @@
 @endsection
 
 @section('content')
-  <form action="{{ url('/member/store') }}" method="POST" novalidate>
+  {{-- PENTING: tambah enctype supaya upload file jalan --}}
+  <form action="{{ url('/member/add-member/save') }}" method="POST" enctype="multipart/form-data" novalidate>
     @csrf
 
     <div class="form-row">
@@ -145,8 +146,6 @@
         </select>
         @error('status_membership') <div class="invalid-feedback">{{ $message }}</div> @enderror
       </div>
-
-      {{-- tanggal_lahir sudah di atas; sisakan notes di bawah --}}
     </div>
 
     {{-- notes --}}
@@ -156,6 +155,23 @@
                 class="form-control @error('notes') is-invalid @enderror"
                 placeholder="Opsional...">{{ old('notes') }}</textarea>
       @error('notes') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </div>
+
+    {{-- foto_profil (opsional) --}}
+    <div class="form-group">
+      <label for="foto_profil">Foto Profil <small class="text-muted">(opsional)</small></label>
+      <div class="custom-file">
+        <input type="file"
+               class="custom-file-input @error('foto_profil') is-invalid @enderror"
+               id="foto_profil" name="foto_profil" accept="image/*">
+        <label class="custom-file-label" for="foto_profil">Pilih gambar...</label>
+        @error('foto_profil') <div class="invalid-feedback">{{ $message }}</div> @enderror
+      </div>
+      <small class="form-text text-muted">Format: JPG/PNG/WEBP, maks 2 MB.</small>
+
+      <div class="mt-2">
+        <img id="preview-foto" src="" alt="Preview foto" class="img-thumbnail d-none" style="max-height:160px;">
+      </div>
     </div>
 
     <div class="d-flex justify-content-between">
@@ -169,13 +185,13 @@
   </form>
 @endsection
 
-{{-- Opsional: auto-hitungan end_date = start_date + durasi (bulan) --}}
+{{-- Auto-hitungan end_date + preview foto --}}
 @section('scripts')
 <script>
   (function(){
-    const durasi   = document.getElementById('durasi_plan');
-    const start    = document.getElementById('start_date');
-    const end      = document.getElementById('end_date');
+    const durasi = document.getElementById('durasi_plan');
+    const start  = document.getElementById('start_date');
+    const end    = document.getElementById('end_date');
 
     function recalc(){
       const s = start.value;
@@ -190,6 +206,30 @@
     }
     start && start.addEventListener('change', recalc);
     durasi && durasi.addEventListener('input', recalc);
+
+    // Preview foto + ubah label custom-file
+    const fileInput = document.getElementById('foto_profil');
+    const label     = document.querySelector('label.custom-file-label[for="foto_profil"]') || document.querySelector('#foto_profil ~ .custom-file-label');
+    const preview   = document.getElementById('preview-foto');
+
+    if (fileInput) {
+      fileInput.addEventListener('change', function(){
+        const file = this.files && this.files[0];
+        if (label) label.textContent = file ? file.name : 'Pilih gambar...';
+
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            preview.src = e.target.result;
+            preview.classList.remove('d-none');
+          };
+          reader.readAsDataURL(file);
+        } else {
+          preview.src = '';
+          preview.classList.add('d-none');
+        }
+      });
+    }
   })();
 </script>
 @endsection
