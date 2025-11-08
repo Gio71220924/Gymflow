@@ -1,3 +1,4 @@
 @extends('layouts.main')
-@section('title', 'Dashboard')
+@section('title', 'Member Management')
+@section('page_heading', 'Member Management')
 @section('content')

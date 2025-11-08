@@ -80,7 +80,7 @@
             <a class="nav-link {{ ($key ?? '') === 'member'  ? 'active' : '' }}" href="/member">
               <i class="bi bi-people"></i> Member Management
             </a>
-            <a class="nav-link {{ ($key ?? '') === 'classes' ? 'active' : '' }}" href="/classes">
+            <a class="nav-link {{ ($key ?? '') === 'class' ? 'active' : '' }}" href="/class">
               <i class="bi bi-calendar-event"></i> Classes
             </a>
             <a class="nav-link {{ ($key ?? '') === 'billing' ? 'active' : '' }}" href="/billing">
