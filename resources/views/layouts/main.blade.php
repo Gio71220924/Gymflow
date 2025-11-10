@@ -22,39 +22,52 @@
           href="https://cdn.datatables.net/2.3.4/css/dataTables.dataTables.css">
 
     <style>
+      :root{
+        --sidebar-w: 260px;            /* lebar normal */
+        --sidebar-w-collapsed: 72px;   /* lebar saat collapsed (ikon saja) */
+      }
+
       /* Layout dasar */
       html, body { height: 100%; }
       .layout { min-height: 100vh; }
 
-      /* Sidebar gelap ala Tailwind sample */
+      /* Sidebar gelap */
       .sidebar {
-        width: 260px;
+        width: var(--sidebar-w);
         min-height: 100vh;
         background-color: #28231C;
         color: #fff;
+        transition: width .2s ease;
+        position: relative; /* perlu untuk resizer */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
       }
+      .sidebar.collapsed {
+        width: var(--sidebar-w-collapsed) !important; /* paksa override inline width saat collapsed */
+      }
+
       .sidebar .brand {
         font-weight: 700;
-        font-size: 2.5rem;
+        font-size: 1.25rem;
       }
+
+      /* Item menu */
       .sidebar .nav-link {
-        font-size: 1.3rem;
-        color: rgba(255,255,255,0.7);
+        font-size: 1.05rem;
+        color: rgba(255,255,255,0.8);
         border-radius: .75rem;
-        padding: .5rem .75rem;
-        margin-bottom: 0.6rem;
+        padding: 0.9rem .75rem;    /* area klik atas-bawah lebih lega */
+        margin-bottom: 0.6rem;     /* jarak antar item */
         display: flex;
         align-items: center;
-        letter-spacing: 0.4px;
-        gap: 0.75rem;
-        margin-right: 0 !important;
-        padding-top:0.9 rem;
-        padding-bottom:0.9 rem;
-        line-height: 2;
+        gap: 0.75rem;              /* jarak ikon-teks */
+        line-height: 1.2;
+        white-space: nowrap;
       }
       .sidebar .nav-link i {
-        font-size: 1rem;
-        margin-right: .5rem;
+        font-size: 1.1rem;
+        margin-right: 0;           /* gap sudah ngatur jarak */
       }
       .sidebar .nav-link.active,
       .sidebar .nav-link:hover {
@@ -62,9 +75,36 @@
         background: rgba(255,255,255,0.1);
       }
 
-      /* Konten kanan */
+      /* Sembunyikan teks saat collapsed, ikon tetap muncul */
+      .sidebar .label { white-space: nowrap; }
+      .sidebar.collapsed .label { display: none; }
+      .sidebar.collapsed .nav-link { justify-content: center; gap: 0; }
+
+      /* Handle drag-resize */
+      .sidebar-resizer{
+        position: absolute;
+        top: 0; right: 0; bottom: 0;
+        width: 6px;
+        cursor: col-resize;
+        background: transparent;
+      }
+      .sidebar-resizer:hover { background: rgba(255,255,255,.08); }
+      body.resizing {
+        cursor: col-resize !important;
+        user-select: none;
+      }
+
+      /* Konten kanan: min-width:0 penting agar flex child boleh mengecil */
       .content {
         background: #f8f9fa;
+        min-width: 0;
+      }
+
+      /* Header halaman biar tombol & judul rapi */
+      .page-header-title{
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.25rem;
       }
     </style>
 
@@ -73,28 +113,28 @@
   <body>
     <div class="d-flex layout">
       <!-- Sidebar kiri -->
-      <aside class="sidebar d-flex flex-column justify-content-between p-3">
+      <aside class="sidebar p-3">
         <div>
           <div class="d-flex align-items-center mb-4 px-2">
             <i class="bi bi-barbell mr-2 text-warning" style="font-size:1.4rem;"></i>
-            <span class="brand">GymFlow</span>
+            <span class="brand label">GymFlow</span>
           </div>
 
           <nav class="nav flex-column">
-            <a class="nav-link {{ ($key ?? '') === 'home'    ? 'active' : '' }}" href="/home">
-              <i class="bi bi-speedometer2"></i> Dashboard
+            <a class="nav-link {{ ($key ?? '') === 'home'    ? 'active' : '' }}" href="/">
+              <i class="bi bi-speedometer2"></i> <span class="label">Dashboard</span>
             </a>
             <a class="nav-link {{ ($key ?? '') === 'member'  ? 'active' : '' }}" href="/member">
-              <i class="bi bi-people"></i> Member Management
+              <i class="bi bi-people"></i> <span class="label">Member Management</span>
             </a>
             <a class="nav-link {{ ($key ?? '') === 'class' ? 'active' : '' }}" href="/class">
-              <i class="bi bi-calendar-event"></i> Classes
+              <i class="bi bi-calendar-event"></i> <span class="label">Classes</span>
             </a>
             <a class="nav-link {{ ($key ?? '') === 'billing' ? 'active' : '' }}" href="/billing">
-              <i class="bi bi-receipt"></i> Billing
+              <i class="bi bi-receipt"></i> <span class="label">Billing</span>
             </a>
             <a class="nav-link {{ ($key ?? '') === 'settings'? 'active' : '' }}" href="/settings">
-              <i class="bi bi-gear"></i> Settings
+              <i class="bi bi-gear"></i> <span class="label">Settings</span>
             </a>
           </nav>
         </div>
@@ -105,22 +145,35 @@
               <img src="https://preview.redd.it/u7lozj3xywo91.jpg?width=1080&crop=smart&auto=webp&s=3031b3dd9263f0cc01ccf4c567d5fb73373da915"
                    class="mr-2 rounded-circle" width="36" height="36" alt="pp">
               <div class="media-body">
-                <small class="d-block">Admin Name</small>
-                <small class="text-muted">Gym Administrator</small>
+                <small class="d-block label">Admin Name</small>
+                <small class="text-muted label">Gym Administrator</small>
               </div>
             </div>
           </div>
-          <a class="nav-link mt-2" href="#"><i class="bi bi-box-arrow-right mr-1"></i> Log Out</a>
+          <a class="nav-link mt-2" href="#"><i class="bi bi-box-arrow-right mr-1"></i> <span class="label">Log Out</span></a>
         </div>
+
+        <!-- Handle untuk drag-resize -->
+        <div class="sidebar-resizer" title="Drag to resize"></div>
       </aside>
 
       <!-- Konten kanan -->
       <main class="content flex-fill p-4">
-        <!-- Heading halaman -->
-        <header class="mb-3">
-          <h1 class="h3 font-weight-bold mb-0">
-            @yield('page_heading', 'Member Management')
-          </h1>
+        <!-- Heading + tombol toggle sidebar -->
+        <header class="mb-3 d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center">
+            <button id="sidebarToggle"
+                    class="btn btn-sm btn-outline-secondary mr-2"
+                    type="button"
+                    aria-label="Toggle sidebar"
+                    aria-expanded="true">
+              <i id="sidebarToggleIcon" class="bi bi-layout-sidebar-inset"></i>
+            </button>
+            <h1 class="page-header-title">
+              @yield('page_heading', 'Member Management')
+            </h1>
+          </div>
+          <div></div>
         </header>
 
         <!-- Toolbar opsional (search/filter) -->
@@ -128,7 +181,6 @@
           <div class="d-flex flex-wrap">
             @yield('toolbar')
           </div>
-          <!-- Dikosongkan karena tombol add dipindah ke header card di bawah -->
           <div></div>
         </div>
 
@@ -159,16 +211,135 @@
     <!-- DataTables v2 (vanilla) -->
     <script src="https://cdn.datatables.net/2.3.4/js/dataTables.js"></script>
 
-    <!-- Auto-init generik: semua table yang punya atribut data-datatable -->
+    <!-- Init + Collapse + Drag-Resize -->
     <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('table[data-datatable]').forEach(function (el) {
-          if (!el.dataset.dtInited) {
-            new DataTable(el);
-            el.dataset.dtInited = '1';
+      (function () {
+        const sidebar = document.querySelector('.sidebar');
+        const resizer = document.querySelector('.sidebar-resizer');
+        const btn = document.getElementById('sidebarToggle');
+        const btnIcon = document.getElementById('sidebarToggleIcon');
+
+        // ===== DataTables auto-init + simpan instance untuk penyesuaian lebar
+        window._dtInstances = [];
+        function initTables() {
+          document.querySelectorAll('table[data-datatable]').forEach(function (el) {
+            if (!el.dataset.dtInited) {
+              const dt = new DataTable(el);
+              el.dataset.dtInited = '1';
+              window._dtInstances.push(dt);
+            }
+          });
+        }
+        function adjustTables() {
+          // Coba panggil API adjust jika ada, kalau tidak, paksa reflow via resize event
+          let adjusted = false;
+          window._dtInstances.forEach(function (dt) {
+            if (dt && typeof dt.columns?.adjust === 'function') {
+              try { dt.columns.adjust(); adjusted = true; } catch(e){}
+            }
+          });
+          if (!adjusted) {
+            window.dispatchEvent(new Event('resize'));
           }
+        }
+
+        // ===== Persist state
+        const savedCollapsed = localStorage.getItem('sidebarCollapsed') === '1';
+        const savedWidth = parseInt(localStorage.getItem('sidebarWidth') || '0', 10);
+        const savedExpandedWidth = parseInt(localStorage.getItem('sidebarWidthExpanded') || '0', 10);
+
+        if (savedCollapsed) {
+          sidebar.classList.add('collapsed');
+          btn?.setAttribute('aria-expanded', 'false');
+          btnIcon?.classList.remove('bi-layout-sidebar-inset');
+          btnIcon?.classList.add('bi-layout-sidebar-reverse');
+        } else if (savedWidth) {
+          sidebar.style.width = savedWidth + 'px';
+        }
+
+        // ===== Toggle collapse
+        btn && btn.addEventListener('click', function () {
+          const willCollapse = !sidebar.classList.contains('collapsed');
+          if (willCollapse) {
+            // simpan lebar terakhir saat expanded
+            const w = parseInt(getComputedStyle(sidebar).width, 10);
+            localStorage.setItem('sidebarWidthExpanded', String(w));
+            // lalu collapse
+            sidebar.classList.add('collapsed');
+            btn.setAttribute('aria-expanded', 'false');
+            btnIcon.classList.remove('bi-layout-sidebar-inset');
+            btnIcon.classList.add('bi-layout-sidebar-reverse');
+            localStorage.setItem('sidebarCollapsed', '1');
+          } else {
+            // expand: pakai lebar terakhir yang disimpan atau default
+            sidebar.classList.remove('collapsed');
+            btn.setAttribute('aria-expanded', 'true');
+            btnIcon.classList.remove('bi-layout-sidebar-reverse');
+            btnIcon.classList.add('bi-layout-sidebar-inset');
+            localStorage.setItem('sidebarCollapsed', '0');
+
+            const expandedW = savedExpandedWidth || 260;
+            sidebar.style.width = expandedW + 'px';
+            localStorage.setItem('sidebarWidth', String(expandedW));
+          }
+          // beri ruang ke tabel
+          setTimeout(adjustTables, 220); // setelah animasi .2s
         });
-      });
+
+        // ===== Drag-resize
+        if (resizer) {
+          const MIN = 180, MAX = 420;
+          let startX = 0, startW = 0, dragging = false;
+
+          const onMove = (e) => {
+            if (!dragging) return;
+            const dx = e.clientX - startX;
+            let w = Math.min(MAX, Math.max(MIN, startW + dx));
+            sidebar.style.width = w + 'px';
+          };
+          const onUp = () => {
+            if (!dragging) return;
+            dragging = false;
+            document.body.classList.remove('resizing');
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+
+            const w = parseInt(getComputedStyle(sidebar).width, 10);
+            localStorage.setItem('sidebarWidth', String(w));
+            localStorage.setItem('sidebarWidthExpanded', String(w));
+            localStorage.setItem('sidebarCollapsed', '0'); // pastikan status expanded
+            // penyesuaian tabel
+            adjustTables();
+          };
+          resizer.addEventListener('mousedown', (e) => {
+            // kalau collapsed, buka dulu biar bisa resize
+            if (sidebar.classList.contains('collapsed')) {
+              sidebar.classList.remove('collapsed');
+              btn?.setAttribute('aria-expanded', 'true');
+              btnIcon?.classList.remove('bi-layout-sidebar-reverse');
+              btnIcon?.classList.add('bi-layout-sidebar-inset');
+              localStorage.setItem('sidebarCollapsed', '0');
+              // pakai lebar tersimpan atau default
+              const expandedW = parseInt(localStorage.getItem('sidebarWidthExpanded') || '260', 10);
+              sidebar.style.width = expandedW + 'px';
+            }
+
+            dragging = true;
+            startX = e.clientX;
+            startW = parseInt(getComputedStyle(sidebar).width, 10);
+            document.body.classList.add('resizing');
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+          });
+        }
+
+        // ===== Init on load
+        document.addEventListener('DOMContentLoaded', function () {
+          initTables();
+          // kecil kemungkinan, tapi jaga-jaga: adjust setelah render
+          setTimeout(adjustTables, 50);
+        });
+      })();
     </script>
 
     @yield('scripts')
