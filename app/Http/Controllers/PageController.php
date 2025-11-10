@@ -69,4 +69,14 @@ class PageController extends Controller
 
         return redirect()->route('member')->with('success', 'Member baru berhasil ditambahkan!');
     }
+
+    public function editMemberForm($id)
+    {
+        $member = Member_Gym::findOrFail($id);
+
+        return view('edit-member', [
+            'key'    => 'member',
+            'member' => $member,
+        ]);
+    }
 }

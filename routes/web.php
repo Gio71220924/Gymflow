@@ -17,6 +17,9 @@ Route::get('/member', 'PageController@member')->name('member');
 Route::get('/member/add-member', "PageController@addMemberForm")->name('add-member');
 //Routing untuk save data form
 Route::post('/member/add-member/save', 'PageController@saveMember')->name('save-member');
+// Routing ke form edit member
+Route::get('/member/edit-member/{id}', 'PageController@editMemberForm')->name('edit-member');
+// Routing untuk update data member
 
 
 // MemberGym
