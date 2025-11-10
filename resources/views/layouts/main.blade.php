@@ -35,15 +35,22 @@
       }
       .sidebar .brand {
         font-weight: 700;
-        font-size: 1.1rem;
+        font-size: 2.5rem;
       }
       .sidebar .nav-link {
+        font-size: 1.3rem;
         color: rgba(255,255,255,0.7);
         border-radius: .75rem;
         padding: .5rem .75rem;
-        margin-bottom: .25rem;
+        margin-bottom: 0.6rem;
         display: flex;
         align-items: center;
+        letter-spacing: 0.4px;
+        gap: 0.75rem;
+        margin-right: 0 !important;
+        padding-top:0.9 rem;
+        padding-bottom:0.9 rem;
+        line-height: 2;
       }
       .sidebar .nav-link i {
         font-size: 1rem;
