@@ -20,7 +20,7 @@ Route::post('/member/add-member/save', 'PageController@saveMember')->name('save-
 // Routing ke form edit member
 Route::get('/member/edit-member/{id}', 'PageController@editMemberForm')->name('edit-member');
 // Routing untuk update data member
-
+// Route::post('/member/edit-member/update/{id}', 'PageController@updateMember')->name('update-member');
 
 // MemberGym
 
