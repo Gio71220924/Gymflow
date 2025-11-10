@@ -61,6 +61,7 @@
         <th>Status Membership</th>
         <th>Notes</th>
         <th>Foto Profil</th>
+        <th>Aksi</th>
       </tr>
     </thead>
     <tbody>
@@ -95,6 +96,7 @@
                 style="object-fit:cover;border-radius:8px;">
             @endif
           </td>
+          <td><a href="/member/edit-member/{{ $m->id }}" class="btn btn-sm btn-success"><i class="bi bi-pencil-square">Edit</a></td>
         </tr>
       @empty
         <tr>
