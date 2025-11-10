@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route; // BENAR
 
 
 
-Route::get('/home', 'PageController@home')->name('home');
+Route::get('/', 'PageController@home')->name('home');
 
 
 
