@@ -21,21 +21,21 @@
     };
   @endphp
 
-  {{-- PENTING: edit harus pakai method spoofing PUT --}}
-  <form action="/member/edit-member/{{($member->id) }}"
+  {{-- EDIT pakai PUT --}}
+  <form action="{{ url('/member/edit-member/'.$member->id) }}"
         method="POST" enctype="multipart/form-data" novalidate>
     @csrf
     @method('PUT')
 
     <div class="form-row">
-      {{-- id_member (readonly agar kunci tidak berubah, tetap terkirim saat submit) --}}
+      {{-- id_member (readonly) --}}
       <div class="form-group col-md-4">
         <label for="id_member">ID Member <span class="text-danger">*</span></label>
         <input type="text" maxlength="10" readonly
                class="form-control @error('id_member') is-invalid @enderror"
                id="id_member" name="id_member"
                value="{{ old('id_member', $member->id_member) }}"
-               placeholder="GM-001" required>
+               placeholder="GM-001">
         @error('id_member') <div class="invalid-feedback">{{ $message }}</div> @enderror
       </div>
 
@@ -113,9 +113,9 @@
       {{-- membership_plan --}}
       <div class="form-group col-md-4">
         <label for="membership_plan">Membership Plan <span class="text-danger">*</span></label>
+        @php $plan = old('membership_plan', $member->membership_plan); @endphp
         <select id="membership_plan" name="membership_plan"
                 class="form-control @error('membership_plan') is-invalid @enderror" required>
-          @php $plan = old('membership_plan', $member->membership_plan); @endphp
           <option value="" disabled {{ $plan ? '' : 'selected' }}>Pilih...</option>
           <option value="basic"   {{ $plan==='basic'   ? 'selected' : '' }}>basic</option>
           <option value="premium" {{ $plan==='premium' ? 'selected' : '' }}>premium</option>
@@ -191,33 +191,26 @@
       </div>
       <small class="form-text text-muted">Format: JPG/PNG/WEBP, maks 2 MB.</small>
 
-      {{-- simpan path lama bila controller butuh --}}
-      @if(!empty($member->foto_profil))
-        <input type="hidden" name="existing_foto" value="{{ $member->foto_profil }}">
-      @endif
+    <div class="form-group">
+        @if($member->foto_profil)
+          <img id="preview-foto"
+               src="{{ asset('storage/foto_profil/'.$member->foto_profil) }}"
+               alt="Preview Foto Profil"
+               class="mt-2"
+               style="max-width:200px;max-height:200px;object-fit:cover;border-radius:8px;">
+        @else
+            <img id="preview-foto"
+                 src="{{asset('storage/foto_profil/noimage.png') }}"
+                 alt="Preview Foto Profil"
+                 class="mt-2 d-none"
+                 style="max-width:200px;max-height:200px;object-fit:cover;border-radius:8px;">
+        @endif
 
-      <div class="mt-2">
-        @php
-          $fotoUrl = null;
-          if (!empty($member->foto_profil)) {
-            // sesuaikan dengan cara simpanmu (storage/public atau URL penuh)
-            $fotoUrl = \Illuminate\Support\Str::startsWith($member->foto_profil, ['http://','https://'])
-                      ? $member->foto_profil
-                      : asset('storage/'.$member->foto_profil);
-          }
-        @endphp
-        <img id="preview-foto"
-             src="{{ $fotoUrl ?? '' }}"
-             alt="Preview foto"
-             class="img-thumbnail {{ $fotoUrl ? '' : 'd-none' }}"
-             style="max-height:160px;">
-      </div>
+        <br><small><i>Foto Sebelumnya</i></small>
     </div>
 
     <div class="d-flex justify-content-between">
-      <a href="{{ url('/member') }}" class="btn btn-outline-secondary">
-        Batal
-      </a>
+      <a href="{{ url('/member') }}" class="btn btn-outline-secondary">Batal</a>
       <button type="submit" class="btn btn-primary">
         <i class="bi bi-save"></i> Simpan Perubahan
       </button>
@@ -238,9 +231,7 @@
       const d = parseInt(durasi.value, 10);
       if(!s || !d || d < 1) return;
       const dt = new Date(s + 'T00:00:00');
-      // tambah bulan sesuai durasi
       dt.setMonth(dt.getMonth() + d);
-      // handle tanggal akhir bulan agar tidak "overflow" (misal 31 -> 30/28)
       const yyyy = dt.getFullYear();
       const mm   = String(dt.getMonth()+1).padStart(2,'0');
       const dd   = String(dt.getDate()).padStart(2,'0');
@@ -260,12 +251,13 @@
         if (label) label.textContent = file ? file.name : 'Pilih gambar...';
 
         if (file) {
-          // cek ukuran maks 2MB
           const MAX = 2 * 1024 * 1024;
           if (file.size > MAX) {
             alert('Ukuran file melebihi 2 MB.');
             this.value = '';
             if (label) label.textContent = 'Pilih gambar...';
+            preview.src = '';
+            preview.classList.add('d-none');
             return;
           }
           const reader = new FileReader();
@@ -274,6 +266,9 @@
             preview.classList.remove('d-none');
           };
           reader.readAsDataURL(file);
+        } else {
+          preview.src = '';
+          preview.classList.add('d-none');
         }
       });
     }
