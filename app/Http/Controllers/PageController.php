@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Member_Gym;
+use Illuminate\Support\Facades\Storage;
 
 class PageController extends Controller
 {
@@ -79,4 +80,39 @@ class PageController extends Controller
             'member' => $member,
         ]);
     }
-}
+
+    public function updateMember(Request $request, $id) {
+        $member = Member_Gym::findOrFail($id);
+
+        //Validasi input
+        $member->id_member = $request->id_member;
+        $member->nama_member = $request->nama_member;
+        $member->email_member = $request->email_member;
+        $member->nomor_telepon_member = $request->nomor_telepon_member;
+        $member->tanggal_lahir = $request->tanggal_lahir;
+        $member->gender = $request->gender;
+        $member->tanggal_join = $request->tanggal_join;
+        $member->membership_plan = $request->membership_plan;
+        $member->durasi_plan = $request->durasi_plan;
+        $member->start_date = $request->start_date;
+        $member->end_date = $request->end_date;
+        $member->status_membership = $request->status_membership;
+        $member->notes = $request->notes;
+       
+        //Cek apakah ada file yang diupload
+        if ($request->foto_profil)
+        {
+            if($member->foto_profil){
+                //Hapus file poster lama dari storage
+                Storage::disk('public')->delete('foto_profil/'.$member->foto_profil);
+            }
+            //Simpan file poster ke folder public/storage/poster
+            $file_name = time(). '-'.$request->file('foto_profil')->getClientOriginalName();
+            $path = $request->file('foto_profil')->storeAs('foto_profil', $file_name, 'public');
+            $member->foto_profil = $file_name;
+        }
+        //Simpan perubahan
+        $member->save();
+        //Arahkan kembali ke halaman member
+        return redirect() -> route('member');
+}   }   
