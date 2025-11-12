@@ -21,7 +21,8 @@ Route::post('/member/add-member/save', 'PageController@saveMember')->name('save-
 Route::get('/member/edit-member/{id}', 'PageController@editMemberForm')->name('edit-member');
 // Routing untuk update data member
 Route::put('/member/edit-member/update/{id}', 'PageController@updateMember')->name('update-member');
-
+// Routing untuk delete data member
+Route::get('/member/delete-member/{id}', 'PageController@deleteMember')->name('delete-member');
 // MemberGym
 
 
