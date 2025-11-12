@@ -115,4 +115,20 @@ class PageController extends Controller
         $member->save();
         //Arahkan kembali ke halaman member
         return redirect() -> route('member');
-}   }   
+    }  
+
+    public function deleteMember($id)
+    {
+        $member = Member_Gym::findOrFail($id);
+
+        // Hapus file foto profil dari storage jika ada
+        if ($member->foto_profil) {
+            Storage::disk('public')->delete('foto_profil/' . $member->foto_profil);
+        }
+
+        // Hapus data member dari database
+        $member->delete();
+
+        return redirect()->route('member')->with('success', 'Member berhasil dihapus!');
+    }
+}   
