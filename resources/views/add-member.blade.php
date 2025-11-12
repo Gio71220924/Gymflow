@@ -1,5 +1,4 @@
 @extends('layouts.main')
-
 @section('title', 'Add Member')
 @section('page_heading', 'Add Member')
 @section('card_title', 'Form Tambah Member Gym')
