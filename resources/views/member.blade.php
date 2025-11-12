@@ -96,7 +96,10 @@
                 style="object-fit:cover;border-radius:8px;">
             @endif
           </td>
-          <td><a href="/member/edit-member/{{ $m->id }}" class="btn btn-sm btn-success"><i class="bi bi-pencil-square">Edit</a></td>
+          <td>
+            <a href="/member/edit-member/{{ $m->id }}" class="btn btn-sm btn-success"><i class="bi bi-pencil-square"></i>Edit</a>
+            <a href="/member/delete-member/{{ $m->id }}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i>Delete</a>
+          </td>
         </tr>
       @empty
         <tr>
