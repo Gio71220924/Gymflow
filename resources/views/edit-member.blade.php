@@ -1,6 +1,4 @@
-{{-- resources/views/member/edit.blade.php --}}
 @extends('layouts.main')
-
 @section('title', 'Edit Member')
 @section('page_heading', 'Edit data Member')
 @section('card_title', 'Form Edit Member Gym')
@@ -22,7 +20,7 @@
   @endphp
 
   {{-- EDIT pakai PUT --}}
-  <form action="{{ url('/member/edit-member/'.$member->id) }}"
+  <form action="{{ url('/member/edit-member/update/'.$member->id) }}"
         method="POST" enctype="multipart/form-data" novalidate>
     @csrf
     @method('PUT')
