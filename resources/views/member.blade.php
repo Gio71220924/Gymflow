@@ -33,10 +33,36 @@
 @endsection
 
 @section('content')
-  {{-- Flash success (opsional) --}}
+
+  {{-- Flash success --}}
   @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
       {{ session('success') }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  @endif
+
+  {{-- Alert warning untuk error / pesan lain --}}
+  @if(session('warning'))
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+      <strong>Holy guacamole!</strong> {{ session('warning') }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  @endif
+
+  {{-- Contoh: kalau mau pakai untuk error validasi --}}
+  @if($errors->any())
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+      <strong>Holy guacamole!</strong> Silakan cek kembali beberapa field di bawah:
+      <ul class="mb-0 mt-2">
+        @foreach($errors->all() as $error)
+          <li>{{ $error }}</li>
+        @endforeach
+      </ul>
       <button type="button" class="close" data-dismiss="alert" aria-label="Close">
         <span aria-hidden="true">&times;</span>
       </button>
@@ -97,8 +123,12 @@
             @endif
           </td>
           <td>
-            <a href="/member/edit-member/{{ $m->id }}" class="btn btn-sm btn-success"><i class="bi bi-pencil-square"></i>Edit</a>
-            <a href="/member/delete-member/{{ $m->id }}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i>Delete</a>
+            <a href="/member/edit-member/{{ $m->id }}" class="btn btn-sm btn-success">
+              <i class="bi bi-pencil-square"></i> Edit
+            </a>
+            <a href="/member/delete-member/{{ $m->id }}" class="btn btn-sm btn-danger">
+              <i class="bi bi-trash"></i> Delete
+            </a>
           </td>
         </tr>
       @empty

@@ -114,7 +114,7 @@ class PageController extends Controller
         //Simpan perubahan
         $member->save();
         //Arahkan kembali ke halaman member
-        return redirect() -> route('member');
+        return redirect() -> route('member')->with('success', 'Data member berhasil diperbarui!');
     }  
 
     public function deleteMember($id)
