@@ -8,7 +8,7 @@ use App\User;
 class Member_Gym extends Model
 {
     //
-    protected $table = 'member_Gym';
+    protected $table = 'member_gym';
 
     protected $fillable = [
     'user_id',
