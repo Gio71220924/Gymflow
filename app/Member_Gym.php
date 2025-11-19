@@ -3,7 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\User;
 
 class Member_Gym extends Model
 {
@@ -11,6 +11,7 @@ class Member_Gym extends Model
     protected $table = 'member_Gym';
 
     protected $fillable = [
+    'user_id',
     'id_member',
     'nama_member',
     'email_member',
@@ -27,4 +28,8 @@ class Member_Gym extends Model
     'foto_profil',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }
