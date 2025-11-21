@@ -12,7 +12,7 @@ class UserController extends Controller
     {
         $users = User::orderByDesc('id')->get();
 
-        return view('users.index', [
+        return view('users', [
             'key'   => 'users',
             'users' => $users,
         ]);
@@ -20,7 +20,7 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('users.create', [
+        return view('add-users', [
             'key' => 'users',
         ]);
     }
