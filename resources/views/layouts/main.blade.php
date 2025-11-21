@@ -127,6 +127,9 @@
             <a class="nav-link {{ ($key ?? '') === 'member'  ? 'active' : '' }}" href="/member">
               <i class="bi bi-people"></i> <span class="label">Member Management</span>
             </a>
+            <a class="nav-link {{ ($key ?? '') === 'users'  ? 'active' : '' }}" href="/users">
+              <i class="bi bi-person-gear"></i> <span class="label">User Management</span>
+            </a>
             <a class="nav-link {{ ($key ?? '') === 'class' ? 'active' : '' }}" href="/class">
               <i class="bi bi-calendar-event"></i> <span class="label">Classes</span>
             </a>
