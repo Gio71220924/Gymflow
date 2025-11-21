@@ -12,6 +12,8 @@
                                                                                                                                                                                   
       const ROLE_USER = 'user';                                                                                                                                                   
       const ROLE_SUPER_ADMIN = 'super_admin';                                                                                                                                     
+      const STATUS_ACTIVE = 'active';                                                                                                                                             
+      const STATUS_INACTIVE = 'inactive';                                                                                                                                         
                                                                                                                                                                                   
       /**                                                                                                                                                                         
        * The attributes that are mass assignable.                                                                                                                                 
@@ -19,8 +21,8 @@
        * @var array                                                                                                                                                               
        */                                                                                                                                                                         
       protected $fillable = [                                                                                                                                                     
-          'name', 'email', 'password', 'role',                                                                                                                                    
-      ];
+          'name', 'email', 'password', 'role', 'status',                                                                                                                          
+      ];                                                                                                                                                                          
                                                                                                                                                                                   
       /**                                                                                                                                                                         
        * The attributes that should be hidden for arrays.                                                                                                                         
