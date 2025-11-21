@@ -23,88 +23,179 @@
 
     <style>
       :root{
-        --sidebar-w: 260px;            /* lebar normal */
-        --sidebar-w-collapsed: 72px;   /* lebar saat collapsed (ikon saja) */
+        /* Sidebar Dimensions */
+        --sidebar-w: 260px;
+        --sidebar-w-collapsed: 72px;
+        
+        /* Brand Colors */
+        --brand-primary: #FC7753;
+        --brand-dark: #28231C;
+        --brand-ink: #1f130c;
+        --brand-soft: #fff2ea;
+        
+        /* Neutral Colors */
+        --neutral-bg: #FAFAFA;
+        --neutral-card: #FFFFFF;
+        --neutral-border: #E5E5E5;
+        --neutral-text: #6B6B6B;
+        --neutral-light: #F5F5F5;
+        
+        /* Spacing System (8px grid) */
+        --space-1: 0.25rem;  /* 4px */
+        --space-2: 0.5rem;   /* 8px */
+        --space-3: 0.75rem;  /* 12px */
+        --space-4: 1rem;     /* 16px */
+        --space-5: 1.5rem;   /* 24px */
+        --space-6: 2rem;     /* 32px */
+        --space-8: 3rem;     /* 48px */
+        
+        /* Typography */
+        --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --text-xs: 0.75rem;   /* 12px */
+        --text-sm: 0.875rem;  /* 14px */
+        --text-base: 1rem;    /* 16px */
+        --text-lg: 1.125rem;  /* 18px */
+        --text-xl: 1.25rem;   /* 20px */
+        --text-2xl: 1.5rem;   /* 24px */
+        
+        /* Shadows */
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+        
+        /* Border Radius */
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
       }
 
-      /* Layout dasar */
-      html, body { height: 100%; }
+      /* Global Styles */
+      * { box-sizing: border-box; }
+      html, body { 
+        height: 100%; 
+        font-family: var(--font-primary);
+        color: var(--brand-ink);
+      }
       .layout { min-height: 100vh; }
 
-      /* Sidebar gelap */
+      /* Sidebar */
       .sidebar {
         width: var(--sidebar-w);
         min-height: 100vh;
-        background-color: #28231C;
+        background: linear-gradient(180deg, var(--brand-dark) 0%, #1f1a15 100%);
         color: #fff;
-        transition: width .2s ease;
-        position: relative; /* perlu untuk resizer */
+        transition: width 0.25s ease;
+        position: relative;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        box-shadow: var(--shadow-lg);
       }
       .sidebar.collapsed {
-        width: var(--sidebar-w-collapsed) !important; /* paksa override inline width saat collapsed */
+        width: var(--sidebar-w-collapsed) !important;
       }
 
       .sidebar .brand {
         font-weight: 700;
-        font-size: 1.25rem;
+        font-size: var(--text-xl);
+        letter-spacing: -0.02em;
       }
 
-      /* Item menu */
+      /* Navigation Links */
       .sidebar .nav-link {
-        font-size: 1.05rem;
-        color: rgba(255,255,255,0.8);
-        border-radius: .75rem;
-        padding: 0.9rem .75rem;    /* area klik atas-bawah lebih lega */
-        margin-bottom: 0.6rem;     /* jarak antar item */
+        font-size: var(--text-base);
+        color: rgba(255,255,255,0.75);
+        border-radius: var(--radius-md);
+        padding: var(--space-3) var(--space-4);
+        margin-bottom: var(--space-2);
         display: flex;
         align-items: center;
-        gap: 0.75rem;              /* jarak ikon-teks */
+        gap: var(--space-3);
         line-height: 1.2;
         white-space: nowrap;
+        transition: all 0.2s ease;
+        font-weight: 500;
       }
       .sidebar .nav-link i {
         font-size: 1.1rem;
-        margin-right: 0;           /* gap sudah ngatur jarak */
+        margin-right: 0;
+        opacity: 0.9;
       }
-      .sidebar .nav-link.active,
       .sidebar .nav-link:hover {
         color: #fff;
-        background: rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.08);
+        transform: translateX(2px);
+      }
+      .sidebar .nav-link.active {
+        color: #fff;
+        background: rgba(252,119,83,0.15);
+        border-left: 3px solid var(--brand-primary);
+        padding-left: calc(var(--space-4) - 3px);
       }
 
-      /* Sembunyikan teks saat collapsed, ikon tetap muncul */
+      /* Collapsed State */
       .sidebar .label { white-space: nowrap; }
       .sidebar.collapsed .label { display: none; }
-      .sidebar.collapsed .nav-link { justify-content: center; gap: 0; }
+      .sidebar.collapsed .nav-link { 
+        justify-content: center; 
+        gap: 0;
+        padding-left: var(--space-4);
+      }
+      .sidebar.collapsed .nav-link.active {
+        border-left: none;
+        border-left: 3px solid var(--brand-primary);
+        padding-left: calc(var(--space-4) - 3px);
+      }
 
-      /* Handle drag-resize */
+      /* Resize Handle */
       .sidebar-resizer{
         position: absolute;
         top: 0; right: 0; bottom: 0;
         width: 6px;
         cursor: col-resize;
         background: transparent;
+        transition: background 0.2s ease;
       }
-      .sidebar-resizer:hover { background: rgba(255,255,255,.08); }
+      .sidebar-resizer:hover { 
+        background: rgba(252,119,83,0.2);
+      }
       body.resizing {
         cursor: col-resize !important;
         user-select: none;
       }
 
-      /* Konten kanan: min-width:0 penting agar flex child boleh mengecil */
+      /* Main Content Area */
       .content {
-        background: #f8f9fa;
+        background: var(--neutral-bg);
         min-width: 0;
+        padding: var(--space-6);
       }
 
-      /* Header halaman biar tombol & judul rapi */
+      /* Page Header */
       .page-header-title{
         margin: 0;
         font-weight: 700;
-        font-size: 1.25rem;
+        font-size: var(--text-2xl);
+        letter-spacing: -0.02em;
+        color: var(--brand-dark);
+      }
+      
+      /* Cards */
+      .card.shadow-sm {
+        border: 1px solid var(--neutral-border);
+        border-radius: var(--radius-lg);
+        background: var(--neutral-card);
+        box-shadow: var(--shadow-md);
+      }
+      .card-header {
+        background: transparent;
+        border-bottom: 1px solid var(--neutral-border);
+        padding: var(--space-5);
+        font-weight: 600;
+        color: var(--brand-dark);
+      }
+      .card-body {
+        padding: var(--space-6);
       }
     </style>
 
@@ -161,7 +252,7 @@
       </aside>
 
       <!-- Konten kanan -->
-      <main class="content flex-fill p-4">
+      <main class="content flex-fill">
         <!-- Heading + tombol toggle sidebar -->
         <header class="mb-3 d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center">
