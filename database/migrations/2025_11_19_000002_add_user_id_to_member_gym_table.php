@@ -14,7 +14,7 @@ class AddUserIdToMemberGymTable extends Migration
     public function up()
     {
         Schema::table('member_gym', function (Blueprint $table) {
-            $table->unsignedBigInteger('user_id')->unique()->after('id');
+            $table->unsignedBigInteger('user_id')->nullable()->unique()->after('id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
