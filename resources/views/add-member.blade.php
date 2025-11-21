@@ -16,8 +16,24 @@
     @csrf
 
     <div class="form-row">
+      {{-- user_id --}}
+      <div class="form-group col-md-6">
+        <label for="user_id">User (akun) <span class="text-danger">*</span></label>
+        <select id="user_id" name="user_id"
+                class="form-control @error('user_id') is-invalid @enderror" required>
+          <option value="" disabled {{ old('user_id') ? '' : 'selected' }}>Pilih user...</option>
+          @foreach($availableUsers as $user)
+            <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>
+              {{ $user->name }} ({{ $user->email }})
+            </option>
+          @endforeach
+        </select>
+        @error('user_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <small class="form-text text-muted">Pilih akun user yang sudah dibuat.</small>
+      </div>
+
       {{-- id_member --}}
-      <div class="form-group col-md-4">
+      <div class="form-group col-md-6">
         <label for="id_member">ID Member <span class="text-danger">*</span></label>
         <input type="text" maxlength="10"
                class="form-control @error('id_member') is-invalid @enderror"
