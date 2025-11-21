@@ -133,7 +133,22 @@
         </tr>
       @empty
         <tr>
-          <td colspan="15" class="text-center text-muted">Belum ada data member.</td>
+          <td class="text-center text-muted">Belum ada data member.</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
       @endforelse
     </tbody>
