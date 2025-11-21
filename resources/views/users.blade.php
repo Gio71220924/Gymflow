@@ -89,7 +89,13 @@
         </tr>
       @empty
         <tr>
-          <td colspan="7" class="text-center text-muted">Belum ada data user.</td>
+          <td class="text-center text-muted">Belum ada data user.</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
       @endforelse
     </tbody>
