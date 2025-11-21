@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Hash;
 // Ini khusus USER!!!! Member gym di PageController
 class UserController extends Controller
 {
-    public function index()
+    public function getuser()
     {
         $users = User::orderByDesc('id')->get();
 
