@@ -31,4 +31,6 @@ Route::get('/users/create', 'UserController@create')->name('users.create');
 Route::post('/users', 'UserController@store')->name('users.store');
 Route::delete('/users/{id}', 'UserController@destroy')->name('users.destroy');
 
+//Authentikasi
+Route::get('/', 'AuthentikasiController@loginForm')->name('login');
 
