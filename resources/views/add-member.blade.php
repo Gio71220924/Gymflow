@@ -23,7 +23,9 @@
                 class="form-control @error('user_id') is-invalid @enderror" required>
           <option value="" disabled {{ old('user_id') ? '' : 'selected' }}>Pilih user...</option>
           @foreach($availableUsers as $user)
-            <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>
+            <option value="{{ $user->id }}"
+                    data-email="{{ $user->email }}"
+                    {{ old('user_id') == $user->id ? 'selected' : '' }}>
               {{ $user->name }} ({{ $user->email }})
             </option>
           @endforeach
@@ -204,6 +206,19 @@
 @section('scripts')
 <script>
   (function(){
+    // Prefill email member dari pilihan user
+    const userSelect  = document.getElementById('user_id');
+    const emailInput  = document.getElementById('email_member');
+    function syncEmail(){
+      if (!userSelect || !emailInput) return;
+      const opt = userSelect.selectedOptions[0];
+      if (opt && opt.dataset.email) {
+        emailInput.value = opt.dataset.email;
+      }
+    }
+    userSelect && userSelect.addEventListener('change', syncEmail);
+    syncEmail(); // prefilling jika old() ada
+
     const durasi = document.getElementById('durasi_plan');
     const start  = document.getElementById('start_date');
     const end    = document.getElementById('end_date');
