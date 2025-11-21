@@ -25,6 +25,7 @@
           @foreach($availableUsers as $user)
             <option value="{{ $user->id }}"
                     data-email="{{ $user->email }}"
+                    data-name="{{ $user->name }}"
                     {{ old('user_id') == $user->id ? 'selected' : '' }}>
               {{ $user->name }} ({{ $user->email }})
             </option>
@@ -209,12 +210,12 @@
     // Prefill email member dari pilihan user
     const userSelect  = document.getElementById('user_id');
     const emailInput  = document.getElementById('email_member');
+    const nameInput   = document.getElementById('nama_member');
     function syncEmail(){
       if (!userSelect || !emailInput) return;
       const opt = userSelect.selectedOptions[0];
-      if (opt && opt.dataset.email) {
-        emailInput.value = opt.dataset.email;
-      }
+      if (opt && opt.dataset.email) emailInput.value = opt.dataset.email;
+      if (opt && opt.dataset.name && nameInput) nameInput.value = opt.dataset.name;
     }
     userSelect && userSelect.addEventListener('change', syncEmail);
     syncEmail(); // prefilling jika old() ada
