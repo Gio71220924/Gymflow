@@ -16,8 +16,27 @@
     @csrf
 
     <div class="form-row">
+      {{-- user_id --}}
+      <div class="form-group col-md-6">
+        <label for="user_id">User (akun) <span class="text-danger">*</span></label>
+        <select id="user_id" name="user_id"
+                class="form-control @error('user_id') is-invalid @enderror" required>
+          <option value="" disabled {{ old('user_id') ? '' : 'selected' }}>Pilih user...</option>
+          @foreach($availableUsers as $user)
+            <option value="{{ $user->id }}"
+                    data-email="{{ $user->email }}"
+                    data-name="{{ $user->name }}"
+                    {{ old('user_id') == $user->id ? 'selected' : '' }}>
+              {{ $user->name }} ({{ $user->email }})
+            </option>
+          @endforeach
+        </select>
+        @error('user_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <small class="form-text text-muted">Pilih akun user yang sudah dibuat.</small>
+      </div>
+
       {{-- id_member --}}
-      <div class="form-group col-md-4">
+      <div class="form-group col-md-6">
         <label for="id_member">ID Member <span class="text-danger">*</span></label>
         <input type="text" maxlength="10"
                class="form-control @error('id_member') is-invalid @enderror"
@@ -188,6 +207,19 @@
 @section('scripts')
 <script>
   (function(){
+    // Prefill email member dari pilihan user
+    const userSelect  = document.getElementById('user_id');
+    const emailInput  = document.getElementById('email_member');
+    const nameInput   = document.getElementById('nama_member');
+    function syncEmail(){
+      if (!userSelect || !emailInput) return;
+      const opt = userSelect.selectedOptions[0];
+      if (opt && opt.dataset.email) emailInput.value = opt.dataset.email;
+      if (opt && opt.dataset.name && nameInput) nameInput.value = opt.dataset.name;
+    }
+    userSelect && userSelect.addEventListener('change', syncEmail);
+    syncEmail(); // prefilling jika old() ada
+
     const durasi = document.getElementById('durasi_plan');
     const start  = document.getElementById('start_date');
     const end    = document.getElementById('end_date');

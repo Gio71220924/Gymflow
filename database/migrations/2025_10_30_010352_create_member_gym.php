@@ -42,6 +42,6 @@ class CreateMemberGym extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('_member_gym');
+        Schema::dropIfExists('member_gym');
     }
 }

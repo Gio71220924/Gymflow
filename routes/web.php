@@ -25,5 +25,12 @@ Route::put('/member/edit-member/update/{id}', 'PageController@updateMember')->na
 Route::get('/member/delete-member/{id}', 'PageController@deleteMember')->name('delete-member');
 // MemberGym
 
+// Users (CRUD by admin)
+Route::get('/users', 'UserController@getuser')->name('users.index');
+Route::get('/users/create', 'UserController@create')->name('users.create');
+Route::post('/users', 'UserController@store')->name('users.store');
+Route::delete('/users/{id}', 'UserController@destroy')->name('users.destroy');
 
+//Authentikasi
+Route::get('/', 'AuthentikasiController@loginForm')->name('login');
 
