@@ -121,7 +121,7 @@
           </div>
 
           <nav class="nav flex-column">
-            <a class="nav-link {{ ($key ?? '') === 'home'    ? 'active' : '' }}" href="/">
+            <a class="nav-link {{ ($key ?? '') === 'home'    ? 'active' : '' }}" href="{{ route('home') }}">
               <i class="bi bi-speedometer2"></i> <span class="label">Dashboard</span>
             </a>
             <a class="nav-link {{ ($key ?? '') === 'member'  ? 'active' : '' }}" href="/member">
