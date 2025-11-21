@@ -6,6 +6,8 @@ use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
+
+// Ini khusus USER!!!! Member gym di PageController
 class UserController extends Controller
 {
     public function index()
