@@ -5,12 +5,64 @@ use Illuminate\Http\Request;
 use App\Member_Gym;
 use App\User;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class PageController extends Controller
 {
     public function home()
     {
-        return view('home', ['key' => 'home']);
+        $today = Carbon::today();
+        $next7 = $today->copy()->addDays(7);
+
+        $totalMembers   = Member_Gym::count();
+        $activeMembers  = Member_Gym::where('status_membership', 'Aktif')->count();
+        $inactiveMembers = Member_Gym::where('status_membership', 'Tidak Aktif')->count();
+        $expiringSoon   = Member_Gym::whereBetween('end_date', [$today, $next7])->count();
+        $newThisMonth   = Member_Gym::whereBetween('tanggal_join', [$today->copy()->startOfMonth(), $today->copy()->endOfMonth()])->count();
+
+        $planCounts = Member_Gym::select('membership_plan', DB::raw('COUNT(*) as total'))
+            ->groupBy('membership_plan')
+            ->pluck('total', 'membership_plan');
+
+        $statusCounts = Member_Gym::select('status_membership', DB::raw('COUNT(*) as total'))
+            ->groupBy('status_membership')
+            ->pluck('total', 'status_membership');
+
+        $trendRows = Member_Gym::select(
+                DB::raw('DATE_FORMAT(tanggal_join, "%Y-%m") as ym'),
+                DB::raw('COUNT(*) as total')
+            )
+            ->where('tanggal_join', '>=', $today->copy()->subMonths(5)->startOfMonth())
+            ->groupBy('ym')
+            ->orderBy('ym')
+            ->get();
+
+        $joinTrend = [
+            'labels' => [],
+            'values' => [],
+        ];
+        foreach ($trendRows as $row) {
+            try {
+                $label = Carbon::createFromFormat('Y-m', $row->ym)->format('M Y');
+            } catch (\Throwable $e) {
+                $label = $row->ym;
+            }
+            $joinTrend['labels'][] = $label;
+            $joinTrend['values'][] = (int) $row->total;
+        }
+
+        return view('home', [
+            'key'             => 'home',
+            'totalMembers'    => $totalMembers,
+            'activeMembers'   => $activeMembers,
+            'inactiveMembers' => $inactiveMembers,
+            'expiringSoon'    => $expiringSoon,
+            'newThisMonth'    => $newThisMonth,
+            'planCounts'      => $planCounts,
+            'statusCounts'    => $statusCounts,
+            'joinTrend'       => $joinTrend,
+        ]);
     }
 
     public function member()
