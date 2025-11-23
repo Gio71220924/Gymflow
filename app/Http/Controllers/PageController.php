@@ -99,6 +99,12 @@ class PageController extends Controller
         return view('class', ['key' => 'class']);
     }
 
+
+    public function settings()
+    {
+        return view('settings', ['key' => 'settings']);
+    }
+
     public function billing()
     {
         $invoices = Invoice::with([
