@@ -13,6 +13,7 @@ Route::get("/class", "PageController@class")->name("class");
 Route::get('/billing', 'PageController@billing')->name('billing');
 Route::put('/billing/{id}', 'PageController@updateInvoiceStatus')->name('billing.update');
 Route::get('/billing/{id}/print', 'PageController@printInvoice')->name('billing.print');
+Route::get('/settings', 'PageController@settings')->name('settings');
 
 //Routing untuk get member
 Route::get('/member', 'PageController@member')->name('member');
