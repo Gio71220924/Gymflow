@@ -4,9 +4,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Member_Gym;
 use App\User;
+use App\MembershipPlan;
+use App\MemberMembership;
+use App\Invoice;
+use App\Payment;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
@@ -52,6 +57,15 @@ class PageController extends Controller
             $joinTrend['values'][] = (int) $row->total;
         }
 
+        $paidInvoices      = Invoice::where('status', 'lunas')->count();
+        $pendingInvoices   = Invoice::where('status', 'menunggu')->count();
+        $totalPaidAmount   = Invoice::where('status', 'lunas')->sum('total_tagihan');
+        $outstandingAmount = Invoice::whereIn('status', ['menunggu', 'draft'])->sum('total_tagihan');
+        $recentInvoices    = Invoice::with(['memberMembership.member'])
+                                ->latest()
+                                ->take(5)
+                                ->get();
+
         return view('home', [
             'key'             => 'home',
             'totalMembers'    => $totalMembers,
@@ -62,6 +76,11 @@ class PageController extends Controller
             'planCounts'      => $planCounts,
             'statusCounts'    => $statusCounts,
             'joinTrend'       => $joinTrend,
+            'paidInvoices'    => $paidInvoices,
+            'pendingInvoices' => $pendingInvoices,
+            'totalPaidAmount' => $totalPaidAmount,
+            'outstandingAmount' => $outstandingAmount,
+            'recentInvoices'  => $recentInvoices,
         ]);
     }
 
@@ -78,6 +97,38 @@ class PageController extends Controller
     public function class()
     {
         return view('class', ['key' => 'class']);
+    }
+
+    public function billing()
+    {
+        $invoices = Invoice::with([
+            'memberMembership.member',
+            'memberMembership.plan',
+            'payments' => function ($q) {
+                $q->latest('paid_at')->latest('id');
+            },
+        ])->orderByDesc('id')->get();
+
+        // Recalc invoice total jika ada yang 0/meleset
+        foreach ($invoices as $inv) {
+            $this->recalcInvoiceTotal($inv);
+        }
+
+        // Recompute summary after recalculation
+        $summary = [
+            'total'         => $invoices->count(),
+            'lunas'         => $invoices->where('status', 'lunas')->count(),
+            'menunggu'      => $invoices->where('status', 'menunggu')->count(),
+            'draft'         => $invoices->where('status', 'draft')->count(),
+            'batal'         => $invoices->where('status', 'batal')->count(),
+            'total_amount'  => $invoices->sum('total_tagihan'),
+        ];
+
+        return view('billing', [
+            'key'       => 'billing',
+            'invoices'  => $invoices,
+            'summary'   => $summary,
+        ]);
     }
 
     public function addMemberForm()
@@ -105,7 +156,7 @@ class PageController extends Controller
         'membership_plan'       => 'required|in:basic,premium',
         'durasi_plan'           => 'required|integer|min:1',
         'start_date'            => 'required|date',
-        'end_date'              => 'required|date|after_or_equal:start_date',
+        'end_date'              => 'nullable|date|after_or_equal:start_date',
         'status_membership'     => 'required|in:Aktif,Tidak Aktif,Suspended',
         'notes'                 => 'nullable|string',
         'foto_profil'           => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -124,8 +175,14 @@ class PageController extends Controller
             $validatedData['foto_profil'] = null;
         }
 
-    // 4) Simpan
-        Member_Gym::create($validatedData);
+    // 4) Hitung end_date dari durasi_plan + start_date
+        $start = Carbon::parse($validatedData['start_date']);
+        $durasi = max(1, (int) $validatedData['durasi_plan']);
+        $validatedData['end_date'] = $start->copy()->addMonths($durasi)->toDateString();
+
+    // 5) Simpan
+        $member = Member_Gym::create($validatedData);
+        $this->syncMembershipAndInvoice($member, $validatedData);
 
         return redirect()->route('member')->with('success', 'Member baru berhasil ditambahkan!');
     }
@@ -160,7 +217,7 @@ class PageController extends Controller
             'membership_plan'       => 'required|in:basic,premium',
             'durasi_plan'           => 'required|integer|min:1',
             'start_date'            => 'required|date',
-            'end_date'              => 'required|date|after_or_equal:start_date',
+            'end_date'              => 'nullable|date|after_or_equal:start_date',
             'status_membership'     => 'required|in:Aktif,Tidak Aktif,Suspended',
             'notes'                 => 'nullable|string',
             'foto_profil'           => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -177,6 +234,10 @@ class PageController extends Controller
         $member->tanggal_join = $validated['tanggal_join'];
         $member->membership_plan = $validated['membership_plan'];
         $member->durasi_plan = $validated['durasi_plan'];
+        $start = Carbon::parse($validated['start_date']);
+        $durasi = max(1, (int) $validated['durasi_plan']);
+        $validated['end_date'] = $start->copy()->addMonths($durasi)->toDateString();
+
         $member->start_date = $validated['start_date'];
         $member->end_date = $validated['end_date'];
         $member->status_membership = $validated['status_membership'];
@@ -196,6 +257,7 @@ class PageController extends Controller
         }
         //Simpan perubahan
         $member->save();
+        $this->syncMembershipAndInvoice($member, $validated);
         //Arahkan kembali ke halaman member
         return redirect() -> route('member')->with('success', 'Data member berhasil diperbarui!');
     }  
@@ -214,4 +276,233 @@ class PageController extends Controller
 
         return redirect()->route('member')->with('success', 'Member berhasil dihapus!');
     }
-}   
+
+    private function syncMembershipAndInvoice(Member_Gym $member, array $data)
+    {
+        $plan = $this->resolvePlanFromName($data['membership_plan'] ?? null, $data['durasi_plan'] ?? 1);
+
+        if (!$plan) {
+            return;
+        }
+
+        $membershipData = [
+            'member_id'          => $member->id,
+            'plan_id'            => $plan->id,
+            'start_date'         => $data['start_date'] ?? null,
+            'end_date'           => $data['end_date'] ?? null,
+            'status'             => $this->mapStatusMembership($data['status_membership'] ?? null),
+            'pembayaran_status'  => 'menunggu',
+            'catatan'            => $data['notes'] ?? null,
+        ];
+
+        $membership = $member->memberMemberships()->latest('id')->first();
+
+        if ($membership) {
+            $membership->update($membershipData);
+            $created = false;
+        } else {
+            $membership = MemberMembership::create($membershipData);
+            $created = true;
+        }
+
+        if ($created) {
+            $this->createInvoiceForMembership($membership, $plan, $data);
+        }
+    }
+
+    private function createInvoiceForMembership(MemberMembership $membership, MembershipPlan $plan, array $data)
+    {
+        $invoice = new Invoice([
+            'member_membership_id' => $membership->id,
+            'nomor_invoice'        => $this->generateInvoiceNumber(),
+            'due_date'             => $membership->end_date ?? ($data['end_date'] ?? null),
+            'total_tagihan'        => $this->calculateTotalTagihan($plan, $membership, $data['durasi_plan'] ?? 1),
+            'diskon'               => 0,
+            'pajak'                => 0,
+            'status'               => 'menunggu',
+            'catatan'              => $data['notes'] ?? null,
+        ]);
+
+        $invoice->save();
+    }
+
+    private function calculateTotalTagihan(MembershipPlan $plan, MemberMembership $membership, $durasiInput)
+    {
+        // Hitung durasi berdasar tanggal start-end membership
+        $durationMonths = null;
+        if ($membership->start_date && $membership->end_date) {
+            $durationMonths = Carbon::parse($membership->start_date)
+                ->diffInMonths(Carbon::parse($membership->end_date));
+            $durationMonths = max(1, $durationMonths);
+        }
+
+        $durasi = $durationMonths ?? max(1, (int) $durasiInput);
+
+        // Harga fallback jika plan harga belum diisi atau tidak sesuai default
+        $price = $this->defaultPlanPrice($plan->nama);
+        if (!$price || $price <= 0) {
+            $price = $plan->harga;
+        }
+        if (!$price || $price <= 0) {
+            $price = 0;
+        }
+
+        return $price * $durasi;
+    }
+
+    private function recalcInvoiceTotal(Invoice $invoice)
+    {
+        $membership = $invoice->memberMembership;
+        if (!$membership) {
+            return;
+        }
+
+        $plan = $membership->plan;
+        if (!$plan && $membership->plan_id) {
+            $plan = MembershipPlan::find($membership->plan_id);
+        }
+        if (!$plan) {
+            return;
+        }
+
+        $recalc = $this->calculateTotalTagihan($plan, $membership, 1);
+
+        if ($recalc > 0 && $invoice->total_tagihan != $recalc) {
+            $invoice->total_tagihan = $recalc;
+            $invoice->save();
+        }
+    }
+
+    private function resolvePlanFromName(?string $planName, $durasiPlan)
+    {
+        if (!$planName) {
+            return null;
+        }
+
+        $durasi = max(1, (int) $durasiPlan);
+        $defaults = [
+            'basic'   => ['harga' => 150000, 'durasi_bulan' => $durasi],
+            'premium' => ['harga' => 300000, 'durasi_bulan' => $durasi],
+        ];
+
+        $key = strtolower($planName);
+        $price = $defaults[$key]['harga'] ?? 0;
+        $duration = $defaults[$key]['durasi_bulan'] ?? $durasi;
+
+        $plan = MembershipPlan::firstOrCreate(
+            ['nama' => $planName],
+            [
+                'harga'         => $price,
+                'durasi_bulan'  => $duration,
+                'benefit'       => null,
+                'status'        => 'aktif',
+            ]
+        );
+
+        // Jika plan sudah ada namun harga 0, perbarui dengan default
+        if (($plan->harga ?? 0) <= 0 && $price > 0) {
+            $plan->harga = $price;
+            $plan->durasi_bulan = $duration;
+            $plan->save();
+        }
+
+        return $plan;
+    }
+
+    private function mapStatusMembership(?string $status)
+    {
+        switch ($status) {
+            case 'Aktif':
+                return 'aktif';
+            case 'Suspended':
+                return 'dibatalkan';
+            case 'Tidak Aktif':
+            default:
+                return 'selesai';
+        }
+    }
+
+    private function generateInvoiceNumber()
+    {
+        $prefix = 'INV-' . Carbon::now()->format('Ymd');
+
+        do {
+            $candidate = $prefix . '-' . strtoupper(Str::random(5));
+        } while (Invoice::where('nomor_invoice', $candidate)->exists());
+
+        return $candidate;
+    }
+
+    private function defaultPlanPrice(?string $name)
+    {
+        $key = strtolower($name ?? '');
+        if ($key === 'basic') {
+            return 150000;
+        }
+        if ($key === 'premium') {
+            return 300000;
+        }
+        return 0;
+    }
+
+    public function printInvoice($id)
+    {
+        $invoice = Invoice::with([
+            'memberMembership.member',
+            'memberMembership.plan',
+            'payments' => function ($q) {
+                $q->latest('paid_at')->latest('id');
+            },
+        ])->findOrFail($id);
+
+        return view('invoice-print', [
+            'invoice' => $invoice,
+        ]);
+    }
+
+
+    public function updateInvoiceStatus(Request $request, $id)
+    {
+        $invoice = Invoice::with('memberMembership')->findOrFail($id);
+
+        $data = $request->validate([
+            'status'          => 'required|in:draft,menunggu,lunas,batal',
+            'payment_method'  => 'nullable|in:cash,transfer,ewallet,credit_card',
+            'amount'          => 'nullable|numeric|min:0',
+        ]);
+
+        $invoice->status = $data['status'];
+        $invoice->save();
+
+        $membership = $invoice->memberMembership;
+        if ($membership) {
+            if ($data['status'] === 'lunas') {
+                $membership->pembayaran_status = 'lunas';
+            } elseif ($data['status'] === 'menunggu') {
+                $membership->pembayaran_status = 'menunggu';
+            } else {
+                $membership->pembayaran_status = 'gagal';
+            }
+            $membership->save();
+        }
+
+        if ($data['status'] === 'lunas') {
+            $method = $data['payment_method'] ?? 'cash';
+            $amount = $data['amount'] ?? $invoice->total_tagihan;
+
+            Payment::create([
+                'invoice_id'   => $invoice->id,
+                'amount'       => $amount,
+                'method'       => $method,
+                'paid_at'      => Carbon::now(),
+                'status'       => 'berhasil',
+                'bukti_bayar'  => null,
+                'reference_no' => null,
+                'catatan'      => 'Updated by admin',
+            ]);
+        }
+
+        return redirect()->route('billing')->with('success', 'Status invoice berhasil diperbarui.');
+    }
+
+}
