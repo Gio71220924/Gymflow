@@ -206,10 +206,15 @@
       <!-- Sidebar kiri -->
       <aside class="sidebar p-3">
         <div>
-          <div class="d-flex align-items-center mb-4 px-2">
-            <i class="bi bi-barbell mr-2 text-warning" style="font-size:1.4rem;"></i>
-            <span class="brand label">GymFlow</span>
-          </div>
+          <a href="{{ route('home') }}" class="d-flex align-items-center mb-4 px-2 text-white text-decoration-none">
+            @if(!empty($appSettings['branding_logo']))
+              <img src="{{ asset('storage/branding/'.$appSettings['branding_logo']) }}" alt="Logo" style="height:34px;" class="mr-2">
+              <span class="brand label">{{ $appSettings['branding_name'] ?? 'GymFlow' }}</span>
+            @else
+              <i class="bi bi-barbell mr-2 text-warning" style="font-size:1.4rem;"></i>
+              <span class="brand label">{{ $appSettings['branding_name'] ?? 'GymFlow' }}</span>
+            @endif
+          </a>
 
           <nav class="nav flex-column">
             <a class="nav-link {{ ($key ?? '') === 'home'    ? 'active' : '' }}" href="{{ route('home') }}">
