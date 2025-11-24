@@ -23,6 +23,13 @@
 @endsection
 
 @section('content')
+  @php
+    $brandingLogo = $appSettings['branding_logo'] ?? null;
+    $brandingName = $appSettings['branding_name'] ?? 'GymFlow';
+    $brandingTagline = $appSettings['branding_tagline'] ?? '';
+    $brandingAddress = $appSettings['branding_address'] ?? '';
+  @endphp
+
   @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
       {{ session('success') }}
@@ -63,6 +70,7 @@
     <thead class="thead-light">
       <tr>
         <th>#</th>
+        <th>Brand</th>
         <th>Member</th>
         <th>Plan</th>
         <th>Periode</th>
@@ -94,6 +102,13 @@
           <td>
             <div class="font-weight-bold">{{ $invoice->nomor_invoice }}</div>
             <small class="text-muted">{{ $invoice->created_at }}</small>
+          </td>
+          <td>
+            @if($brandingLogo)
+              <img src="{{ asset('storage/branding/'.$brandingLogo) }}" alt="logo" height="36" class="mb-1"><br>
+            @endif
+            <div class="font-weight-bold">{{ $brandingName }}</div>
+            @if($brandingTagline)<small class="text-muted">{{ $brandingTagline }}</small>@endif
           </td>
           <td>
             <div class="font-weight-bold">{{ $member->nama_member ?? '-' }}</div>
