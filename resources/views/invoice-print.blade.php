@@ -53,9 +53,21 @@
 <body>
   <div class="invoice-card">
     <div class="invoice-header">
-      <div>
-        <h4 class="title mb-1">Invoice</h4>
-        <div class="text-muted">Nomor: {{ $invoice->nomor_invoice }}</div>
+      <div class="d-flex align-items-center">
+        @php
+          $brandingLogo = $appSettings['branding_logo'] ?? null;
+          $brandingName = $appSettings['branding_name'] ?? 'GymFlow';
+          $brandingTagline = $appSettings['branding_tagline'] ?? '';
+          $brandingAddress = $appSettings['branding_address'] ?? '';
+        @endphp
+        @if($brandingLogo)
+          <img src="{{ asset('storage/branding/'.$brandingLogo) }}" alt="Logo" style="height:48px;" class="mr-3">
+        @endif
+        <div>
+          <h4 class="title mb-1">{{ $brandingName }}</h4>
+          @if($brandingTagline)<div class="text-muted">{{ $brandingTagline }}</div>@endif
+          <div class="text-muted">Invoice: {{ $invoice->nomor_invoice }}</div>
+        </div>
       </div>
       <div class="text-right">
         <div class="badge-soft {{ $invoice->status }} text-capitalize">{{ $invoice->status }}</div>
@@ -96,6 +108,7 @@
           <tr><td>Durasi</td><td>: {{ $durationMonths ?? '-' }} bulan</td></tr>
           <tr><td>Periode</td><td>: {{ optional($membership)->start_date }} - {{ optional($membership)->end_date }}</td></tr>
           <tr><td>Jatuh Tempo</td><td>: {{ $invoice->due_date ?? '-' }}</td></tr>
+          @if($brandingAddress)<tr><td>Alamat</td><td>: {{ $brandingAddress }}</td></tr>@endif
         </table>
       </div>
     </div>
