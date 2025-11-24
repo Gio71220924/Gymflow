@@ -1,40 +1,42 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\AuthentikasiController;
 
-use Illuminate\Support\Facades\Route; // BENAR
+// Dashboard
+Route::get('/home', [PageController::class, 'home'])->name('home');
 
+// Classes (rename method agar tidak bentrok keyword)
+Route::get('/class', [PageController::class, 'classPage'])->name('class');
 
+// Billing
+Route::get('/billing', [PageController::class, 'billing'])->name('billing');
+Route::put('/billing/{id}', [PageController::class, 'updateInvoiceStatus'])->name('billing.update');
+Route::get('/billing/{id}/print', [PageController::class, 'printInvoice'])->name('billing.print');
 
-Route::get('/home', 'PageController@home')->name('home');
+// Settings
+Route::get('/settings', [PageController::class, 'settings'])->name('settings');
+Route::post('/settings', [PageController::class, 'saveSettings'])->name('settings.save');
 
+// Member
+Route::get('/member', [PageController::class, 'member'])->name('member');
+Route::get('/member/add-member', [PageController::class, 'addMemberForm'])->name('add-member');
+Route::post('/member/add-member/save', [PageController::class, 'saveMember'])->name('save-member');
+Route::get('/member/edit-member/{id}', [PageController::class, 'editMemberForm'])->name('edit-member');
+Route::put('/member/edit-member/update/{id}', [PageController::class, 'updateMember'])->name('update-member');
 
-
-Route::get("/class", "PageController@class")->name("class");
-Route::get('/billing', 'PageController@billing')->name('billing');
-Route::put('/billing/{id}', 'PageController@updateInvoiceStatus')->name('billing.update');
-Route::get('/billing/{id}/print', 'PageController@printInvoice')->name('billing.print');
-Route::get('/settings', 'PageController@settings')->name('settings');
-
-//Routing untuk get member
-Route::get('/member', 'PageController@member')->name('member');
-// Routing ke form tambah member
-Route::get('/member/add-member', "PageController@addMemberForm")->name('add-member');
-//Routing untuk save data form
-Route::post('/member/add-member/save', 'PageController@saveMember')->name('save-member');
-// Routing ke form edit member
-Route::get('/member/edit-member/{id}', 'PageController@editMemberForm')->name('edit-member');
-// Routing untuk update data member
-Route::put('/member/edit-member/update/{id}', 'PageController@updateMember')->name('update-member');
-// Routing untuk delete data member
-Route::get('/member/delete-member/{id}', 'PageController@deleteMember')->name('delete-member');
-// MemberGym
+// Hapus: idealnya DELETE, tapi kalau masih pakai link GET boleh aktifkan salah satu:
+Route::delete('/member/delete-member/{id}', [PageController::class, 'deleteMember'])->name('delete-member');
+// Sementara fallback GET (kalau tombol masih <a href="...">):
+Route::get('/member/delete-member/{id}', [PageController::class, 'deleteMember']);
 
 // Users (CRUD by admin)
-Route::get('/users', 'UserController@getuser')->name('users.index');
-Route::get('/users/create', 'UserController@create')->name('users.create');
-Route::post('/users', 'UserController@store')->name('users.store');
-Route::delete('/users/{id}', 'UserController@destroy')->name('users.destroy');
+Route::get('/users', [UserController::class, 'getuser'])->name('users.index');
+Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+Route::post('/users', [UserController::class, 'store'])->name('users.store');
+Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
 
-//Authentikasi
-Route::get('/', 'AuthentikasiController@loginForm')->name('login');
-
+// Auth
+Route::get('/', [AuthentikasiController::class, 'loginForm'])->name('login');
