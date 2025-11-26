@@ -36,6 +36,7 @@
         --neutral-border: #E5E7EB;
         --neutral-text: #6B7280;
         --neutral-light: #F3F4F6;
+        --neutral-ink-strong: #111827;
         
         --space-2: 0.5rem;
         --space-3: 0.75rem;
@@ -56,6 +57,23 @@
         --radius-md: 10px;
         --radius-lg: 12px;
       }
+      :root[data-theme="dark"]{
+        --brand-primary: #FC7753;
+        --brand-dark: #1b1b1f;
+        --brand-ink: #f4f4f6;
+        --brand-soft: #2a2d35;
+        
+        --neutral-bg: #0f1115;
+        --neutral-card: #161921;
+        --neutral-border: #262a34;
+        --neutral-text: #A0A7B5;
+        --neutral-light: #1c2029;
+        --neutral-ink-strong: #f4f4f6;
+
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.35);
+        --shadow-md: 0 2px 10px rgba(0,0,0,0.4);
+        --shadow-lg: 2px 0 16px rgba(0,0,0,0.45);
+      }
 
       * { box-sizing: border-box; }
       html, body { 
@@ -64,6 +82,7 @@
         color: var(--brand-ink);
         font-size: 15px;
         line-height: 1.6;
+        background: var(--neutral-bg);
       }
       .layout { min-height: 100vh; height: 100vh; overflow: hidden; }
 
@@ -159,7 +178,7 @@
         font-weight: 700;
         font-size: var(--text-xl);
         letter-spacing: -0.01em;
-        color: var(--brand-dark);
+        color: var(--neutral-ink-strong);
       }
       
       .btn-toggle {
@@ -174,6 +193,15 @@
         background: var(--neutral-light);
         border-color: var(--brand-primary);
         color: var(--brand-dark);
+      }
+      :root[data-theme="dark"] .btn-toggle {
+        background: var(--neutral-light);
+        border-color: var(--neutral-border);
+        color: var(--neutral-text);
+      }
+      :root[data-theme="dark"] .btn-toggle:hover {
+        background: #222733;
+        color: var(--brand-ink);
       }
 
       .card.shadow-sm {
@@ -233,6 +261,35 @@
       
       .profile-actions {
         margin-top: var(--space-2);
+      }
+
+      /* Dark theme helpers */
+      :root[data-theme="dark"] .card.shadow-sm {
+        background: var(--neutral-card);
+        border-color: var(--neutral-border);
+        color: var(--brand-ink);
+        box-shadow: var(--shadow-sm);
+      }
+      :root[data-theme="dark"] .card-header {
+        background: var(--neutral-light);
+        border-color: var(--neutral-border);
+        color: var(--brand-ink);
+      }
+      :root[data-theme="dark"] .table {
+        color: var(--brand-ink);
+        background: var(--neutral-card);
+      }
+      :root[data-theme="dark"] .table thead th {
+        background: var(--neutral-light);
+        color: var(--brand-ink);
+        border-color: var(--neutral-border);
+      }
+      :root[data-theme="dark"] .table td,
+      :root[data-theme="dark"] .table th {
+        border-color: var(--neutral-border);
+      }
+      :root[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(255,255,255,0.03);
       }
     </style>
 
@@ -320,6 +377,9 @@
           <button id="sidebarToggle" class="btn-toggle mr-3" type="button" aria-label="Toggle sidebar" aria-expanded="true">
             <i id="sidebarToggleIcon" class="bi bi-layout-sidebar-inset"></i>
           </button>
+          <button id="themeToggle" class="btn-toggle mr-2" type="button" aria-label="Toggle theme">
+            <i id="themeToggleIcon" class="bi bi-moon-stars"></i>
+          </button>
           <h1 class="page-header-title">@yield('page_heading', 'Dashboard')</h1>
         </header>
 
@@ -364,6 +424,10 @@
         const resizer = document.querySelector('.sidebar-resizer');
         const btn = document.getElementById('sidebarToggle');
         const btnIcon = document.getElementById('sidebarToggleIcon');
+        const themeToggle = document.getElementById('themeToggle');
+        const themeToggleIcon = document.getElementById('themeToggleIcon');
+        const root = document.documentElement;
+        const THEME_KEY = 'uiTheme';
 
         // ===== DataTables auto-init + simpan instance untuk penyesuaian lebar
         window._dtInstances = [];
@@ -388,6 +452,34 @@
             window.dispatchEvent(new Event('resize'));
           }
         }
+
+        // ===== Theme toggle
+        function setThemeIcon(theme) {
+          if (!themeToggleIcon) return;
+          themeToggleIcon.classList.remove('bi-brightness-high', 'bi-moon-stars');
+          if (theme === 'dark') {
+            themeToggleIcon.classList.add('bi-brightness-high');
+            themeToggle?.setAttribute('aria-label', 'Switch to light mode');
+          } else {
+            themeToggleIcon.classList.add('bi-moon-stars');
+            themeToggle?.setAttribute('aria-label', 'Switch to dark mode');
+          }
+        }
+        function applyTheme(theme) {
+          const normalized = theme === 'dark' ? 'dark' : 'light';
+          root.setAttribute('data-theme', normalized);
+          localStorage.setItem(THEME_KEY, normalized);
+          setThemeIcon(normalized);
+          // sesuaikan tabel setelah repaint
+          setTimeout(adjustTables, 50);
+        }
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const savedTheme = localStorage.getItem(THEME_KEY);
+        applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+        themeToggle?.addEventListener('click', function () {
+          const current = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+          applyTheme(current === 'dark' ? 'light' : 'dark');
+        });
 
         // ===== Persist state
         const savedCollapsed = localStorage.getItem('sidebarCollapsed') === '1';
