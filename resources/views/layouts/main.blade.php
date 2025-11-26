@@ -194,17 +194,17 @@
         padding-top: var(--space-4);
       }
       .user-profile img {
-        width: 36px;
-        height: 36px;
+        width: 52px;
+        height: 52px;
         border-radius: 50%;
         flex-shrink: 0;
       }
       .user-info {
-        font-size: var(--text-sm);
+        font-size: var(--text-base);
         color: rgba(255,255,255,0.9);
       }
       .user-role {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
         color: rgba(255,255,255,0.5);
       }
 
