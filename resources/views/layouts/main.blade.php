@@ -272,7 +272,14 @@
         <div>
           <div class="user-profile">
             <div class="d-flex align-items-center mb-2">
-              <img src="https://preview.redd.it/u7lozj3xywo91.jpg?width=1080&crop=smart&auto=webp&s=3031b3dd9263f0cc01ccf4c567d5fb73373da915" alt="User">
+              @php
+                $userPhoto = optional(Auth::user()->memberGym)->foto_profil;
+              @endphp
+              @if($userPhoto)
+                <img src="{{ asset('storage/foto_profil/' . $userPhoto) }}" alt="{{ Auth::user()->name }}">
+              @else
+                <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=FC7753&color=fff&size=128" alt="{{ Auth::user()->name }}">
+              @endif
               <div class="ml-2 label">
                 <div class="user-info">{{Auth::user()->name}}</div>
                 <div class="user-role">{{Auth::user()->role}}</div>
