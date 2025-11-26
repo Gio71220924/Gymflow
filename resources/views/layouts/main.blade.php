@@ -65,18 +65,21 @@
         font-size: 15px;
         line-height: 1.6;
       }
-      .layout { min-height: 100vh; }
+      .layout { min-height: 100vh; height: 100vh; overflow: hidden; }
 
       .sidebar {
         width: var(--sidebar-w);
         min-height: 100vh;
+        height: 100vh;
+        position: sticky;
+        top: 0;
         background: linear-gradient(180deg, var(--brand-dark) 0%, #1f1a15 100%);
         color: #fff;
         transition: width 0.25s ease;
-        position: relative;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        overflow-y: auto;
         box-shadow: var(--shadow-lg);
       }
       .sidebar.collapsed { width: var(--sidebar-w-collapsed) !important; }
@@ -142,7 +145,9 @@
       .content {
         background: var(--neutral-bg);
         min-width: 0;
+        height: 100vh;
         padding: var(--space-5) var(--space-6);
+        overflow-y: auto;
       }
 
       .page-header {
