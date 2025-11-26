@@ -40,3 +40,5 @@ Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.de
 
 // Auth
 Route::get('/', [AuthentikasiController::class, 'loginForm'])->name('login');
+Route::post('/CekLogin' , [AuthentikasiController::class, 'cekLogin'])->name('cekLogin');
+Route::post('/logout', [AuthentikasiController::class, 'logout'])->name('logout');

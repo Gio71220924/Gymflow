@@ -249,7 +249,13 @@
               </div>
             </div>
           </div>
-          <a class="nav-link mt-2" href="#"><i class="bi bi-box-arrow-right mr-1"></i> <span class="label">Log Out</span></a>
+          <form action="{{ route('logout') }}" method="POST" class="mt-2">
+          @csrf
+            <button type="submit" class="nav-link btn btn-link text-left p-0 d-flex align-items-center">
+              <i class="bi bi-box-arrow-right mr-1"></i>
+              <span class="label">Log Out</span>
+            </button>
+          </form>
         </div>
 
         <!-- Handle untuk drag-resize -->
