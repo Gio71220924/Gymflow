@@ -23,62 +23,50 @@
 
     <style>
       :root{
-        /* Sidebar Dimensions */
         --sidebar-w: 260px;
         --sidebar-w-collapsed: 72px;
         
-        /* Brand Colors */
         --brand-primary: #FC7753;
         --brand-dark: #28231C;
         --brand-ink: #1f130c;
         --brand-soft: #fff2ea;
         
-        /* Neutral Colors */
-        --neutral-bg: #FAFAFA;
+        --neutral-bg: #F8F9FA;
         --neutral-card: #FFFFFF;
-        --neutral-border: #E5E5E5;
-        --neutral-text: #6B6B6B;
-        --neutral-light: #F5F5F5;
+        --neutral-border: #E5E7EB;
+        --neutral-text: #6B7280;
+        --neutral-light: #F3F4F6;
         
-        /* Spacing System (8px grid) */
-        --space-1: 0.25rem;  /* 4px */
-        --space-2: 0.5rem;   /* 8px */
-        --space-3: 0.75rem;  /* 12px */
-        --space-4: 1rem;     /* 16px */
-        --space-5: 1.5rem;   /* 24px */
-        --space-6: 2rem;     /* 32px */
-        --space-8: 3rem;     /* 48px */
+        --space-2: 0.5rem;
+        --space-3: 0.75rem;
+        --space-4: 1rem;
+        --space-5: 1.5rem;
+        --space-6: 2rem;
         
-        /* Typography */
-        --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        --text-xs: 0.75rem;   /* 12px */
-        --text-sm: 0.875rem;  /* 14px */
-        --text-base: 1rem;    /* 16px */
-        --text-lg: 1.125rem;  /* 18px */
-        --text-xl: 1.25rem;   /* 20px */
-        --text-2xl: 1.5rem;   /* 24px */
+        --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --text-sm: 0.875rem;
+        --text-base: 0.9375rem;
+        --text-lg: 1.125rem;
+        --text-xl: 1.25rem;
         
-        /* Shadows */
-        --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-        --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+        --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+        --shadow-lg: 2px 0 12px rgba(0,0,0,0.08);
         
-        /* Border Radius */
-        --radius-sm: 8px;
-        --radius-md: 12px;
-        --radius-lg: 16px;
+        --radius-md: 10px;
+        --radius-lg: 12px;
       }
 
-      /* Global Styles */
       * { box-sizing: border-box; }
       html, body { 
         height: 100%; 
         font-family: var(--font-primary);
         color: var(--brand-ink);
+        font-size: 15px;
+        line-height: 1.6;
       }
       .layout { min-height: 100vh; }
 
-      /* Sidebar */
       .sidebar {
         width: var(--sidebar-w);
         min-height: 100vh;
@@ -91,35 +79,31 @@
         justify-content: space-between;
         box-shadow: var(--shadow-lg);
       }
-      .sidebar.collapsed {
-        width: var(--sidebar-w-collapsed) !important;
-      }
+      .sidebar.collapsed { width: var(--sidebar-w-collapsed) !important; }
 
       .sidebar .brand {
         font-weight: 700;
-        font-size: var(--text-xl);
-        letter-spacing: -0.02em;
+        font-size: var(--text-lg);
+        letter-spacing: -0.01em;
       }
 
-      /* Navigation Links */
       .sidebar .nav-link {
         font-size: var(--text-base);
-        color: rgba(255,255,255,0.75);
+        color: rgba(255,255,255,0.7);
         border-radius: var(--radius-md);
-        padding: var(--space-3) var(--space-4);
-        margin-bottom: var(--space-2);
+        padding: 0.65rem var(--space-4);
+        margin-bottom: 0.25rem;
         display: flex;
         align-items: center;
         gap: var(--space-3);
-        line-height: 1.2;
         white-space: nowrap;
         transition: all 0.2s ease;
         font-weight: 500;
       }
       .sidebar .nav-link i {
         font-size: 1.1rem;
-        margin-right: 0;
-        opacity: 0.9;
+        opacity: 0.85;
+        flex-shrink: 0;
       }
       .sidebar .nav-link:hover {
         color: #fff;
@@ -133,21 +117,17 @@
         padding-left: calc(var(--space-4) - 3px);
       }
 
-      /* Collapsed State */
       .sidebar .label { white-space: nowrap; }
       .sidebar.collapsed .label { display: none; }
       .sidebar.collapsed .nav-link { 
         justify-content: center; 
         gap: 0;
-        padding-left: var(--space-4);
       }
       .sidebar.collapsed .nav-link.active {
-        border-left: none;
         border-left: 3px solid var(--brand-primary);
         padding-left: calc(var(--space-4) - 3px);
       }
 
-      /* Resize Handle */
       .sidebar-resizer{
         position: absolute;
         top: 0; right: 0; bottom: 0;
@@ -156,145 +136,182 @@
         background: transparent;
         transition: background 0.2s ease;
       }
-      .sidebar-resizer:hover { 
-        background: rgba(252,119,83,0.2);
-      }
-      body.resizing {
-        cursor: col-resize !important;
-        user-select: none;
-      }
+      .sidebar-resizer:hover { background: rgba(252,119,83,0.2); }
+      body.resizing { cursor: col-resize !important; user-select: none; }
 
-      /* Main Content Area */
       .content {
         background: var(--neutral-bg);
         min-width: 0;
-        padding: var(--space-6);
+        padding: var(--space-5) var(--space-6);
       }
 
-      /* Page Header */
+      .page-header {
+        margin-bottom: var(--space-5);
+      }
+
       .page-header-title{
         margin: 0;
         font-weight: 700;
-        font-size: var(--text-2xl);
-        letter-spacing: -0.02em;
+        font-size: var(--text-xl);
+        letter-spacing: -0.01em;
         color: var(--brand-dark);
       }
       
-      /* Cards */
+      .btn-toggle {
+        padding: 0.4rem 0.65rem;
+        border: 1px solid var(--neutral-border);
+        background: white;
+        border-radius: var(--radius-md);
+        color: var(--neutral-text);
+        transition: all 0.2s ease;
+      }
+      .btn-toggle:hover {
+        background: var(--neutral-light);
+        border-color: var(--brand-primary);
+        color: var(--brand-dark);
+      }
+
       .card.shadow-sm {
         border: 1px solid var(--neutral-border);
         border-radius: var(--radius-lg);
         background: var(--neutral-card);
-        box-shadow: var(--shadow-md);
+        box-shadow: var(--shadow-sm);
       }
       .card-header {
-        background: transparent;
+        background: var(--neutral-light);
         border-bottom: 1px solid var(--neutral-border);
-        padding: var(--space-5);
+        padding: var(--space-4) var(--space-5);
         font-weight: 600;
+        font-size: var(--text-base);
         color: var(--brand-dark);
       }
       .card-body {
-        padding: var(--space-6);
+        padding: var(--space-5);
       }
+
+      .user-profile {
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding-top: var(--space-4);
+      }
+      .user-profile img {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .user-info {
+        font-size: var(--text-sm);
+        color: rgba(255,255,255,0.9);
+      }
+      .user-role {
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.5);
+      }
+
+      .btn-logout {
+        width: 100%;
+        color: rgba(255,255,255,0.7);
+        text-align: left;
+        padding: 0.5rem var(--space-3);
+        border-radius: var(--radius-md);
+        transition: all 0.2s ease;
+        font-size: var(--text-sm);
+      }
+      .btn-logout:hover {
+        color: #fff;
+        background: rgba(255,255,255,0.08);
+        text-decoration: none;
+      }
+      .btn-logout i { font-size: 1rem; }
     </style>
 
     @yield('styles')
   </head>
   <body>
     <div class="d-flex layout">
-      <!-- Sidebar kiri -->
       <aside class="sidebar p-3">
         <div>
           <a href="{{ route('home') }}" class="d-flex align-items-center mb-4 px-2 text-white text-decoration-none">
             @if(!empty($appSettings['branding_logo']))
-              <img src="{{ asset('storage/branding/'.$appSettings['branding_logo']) }}" alt="Logo" style="height:34px;" class="mr-2">
+              <img src="{{ asset('storage/branding/'.$appSettings['branding_logo']) }}" alt="Logo" style="height:32px;" class="mr-2">
               <span class="brand label">{{ $appSettings['branding_name'] ?? 'GymFlow' }}</span>
             @else
-              <i class="bi bi-barbell mr-2 text-warning" style="font-size:1.4rem;"></i>
+              <i class="bi bi-activity mr-2 text-warning" style="font-size:1.3rem;"></i>
               <span class="brand label">{{ $appSettings['branding_name'] ?? 'GymFlow' }}</span>
             @endif
           </a>
 
           <nav class="nav flex-column">
-            <a class="nav-link {{ ($key ?? '') === 'home'    ? 'active' : '' }}" href="{{ route('home') }}">
-              <i class="bi bi-speedometer2"></i> <span class="label">Dashboard</span>
+            <a class="nav-link {{ ($key ?? '') === 'home' ? 'active' : '' }}" href="{{ route('home') }}">
+              <i class="bi bi-speedometer2"></i>
+              <span class="label">Dashboard</span>
             </a>
-            <a class="nav-link {{ ($key ?? '') === 'member'  ? 'active' : '' }}" href="/member">
-              <i class="bi bi-people"></i> <span class="label">Member Management</span>
+            <a class="nav-link {{ ($key ?? '') === 'member' ? 'active' : '' }}" href="/member">
+              <i class="bi bi-people"></i>
+              <span class="label">Members</span>
             </a>
-            <a class="nav-link {{ ($key ?? '') === 'users'  ? 'active' : '' }}" href="/users">
-              <i class="bi bi-person-gear"></i> <span class="label">User Management</span>
+            <a class="nav-link {{ ($key ?? '') === 'users' ? 'active' : '' }}" href="/users">
+              <i class="bi bi-person-gear"></i>
+              <span class="label">Users</span>
             </a>
             <a class="nav-link {{ ($key ?? '') === 'class' ? 'active' : '' }}" href="/class">
-              <i class="bi bi-calendar-event"></i> <span class="label">Classes</span>
+              <i class="bi bi-calendar-event"></i>
+              <span class="label">Classes</span>
             </a>
             <a class="nav-link {{ ($key ?? '') === 'billing' ? 'active' : '' }}" href="/billing">
-              <i class="bi bi-receipt"></i> <span class="label">Billing</span>
+              <i class="bi bi-receipt"></i>
+              <span class="label">Billing</span>
             </a>
-            <a class="nav-link {{ ($key ?? '') === 'settings'? 'active' : '' }}" href="/settings">
-              <i class="bi bi-gear"></i> <span class="label">Settings</span>
+            <a class="nav-link {{ ($key ?? '') === 'settings' ? 'active' : '' }}" href="/settings">
+              <i class="bi bi-gear"></i>
+              <span class="label">Settings</span>
             </a>
           </nav>
         </div>
 
         <div>
-          <div class="border-top border-light pt-3 px-2">
-            <div class="media align-items-center">
-              <img src="https://preview.redd.it/u7lozj3xywo91.jpg?width=1080&crop=smart&auto=webp&s=3031b3dd9263f0cc01ccf4c567d5fb73373da915"
-                   class="mr-2 rounded-circle" width="36" height="36" alt="pp">
-              <div class="media-body">
-                <small class="d-block label">Admin Name</small>
-                <small class="text-muted label">Gym Administrator</small>
+          <div class="user-profile">
+            <div class="d-flex align-items-center mb-2">
+              <img src="https://preview.redd.it/u7lozj3xywo91.jpg?width=1080&crop=smart&auto=webp&s=3031b3dd9263f0cc01ccf4c567d5fb73373da915" alt="User">
+              <div class="ml-2 label">
+                <div class="user-info">{{Auth::user()->name}}</div>
+                <div class="user-role">{{Auth::user()->role}}</div>
               </div>
             </div>
           </div>
-          <form action="{{ route('logout') }}" method="POST" class="mt-2">
-          @csrf
-            <button type="submit" class="nav-link btn btn-link text-left p-0 d-flex align-items-center">
-              <i class="bi bi-box-arrow-right mr-1"></i>
+          <form action="{{ route('logout') }}" method="POST">
+            @csrf
+            <button type="submit" class="btn-logout btn btn-link d-flex align-items-center">
+              <i class="bi bi-box-arrow-right mr-2"></i>
               <span class="label">Log Out</span>
             </button>
           </form>
         </div>
 
-        <!-- Handle untuk drag-resize -->
         <div class="sidebar-resizer" title="Drag to resize"></div>
       </aside>
 
-      <!-- Konten kanan -->
       <main class="content flex-fill">
-        <!-- Heading + tombol toggle sidebar -->
-        <header class="mb-3 d-flex align-items-center justify-content-between">
-          <div class="d-flex align-items-center">
-            <button id="sidebarToggle"
-                    class="btn btn-sm btn-outline-secondary mr-2"
-                    type="button"
-                    aria-label="Toggle sidebar"
-                    aria-expanded="true">
-              <i id="sidebarToggleIcon" class="bi bi-layout-sidebar-inset"></i>
-            </button>
-            <h1 class="page-header-title">
-              @yield('page_heading', 'Member Management')
-            </h1>
-          </div>
-          <div></div>
+        <header class="page-header d-flex align-items-center">
+          <button id="sidebarToggle" class="btn-toggle mr-3" type="button" aria-label="Toggle sidebar" aria-expanded="true">
+            <i id="sidebarToggleIcon" class="bi bi-layout-sidebar-inset"></i>
+          </button>
+          <h1 class="page-header-title">@yield('page_heading', 'Dashboard')</h1>
         </header>
 
-        <!-- Toolbar opsional (search/filter) -->
-        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-          <div class="d-flex flex-wrap">
-            @yield('toolbar')
-          </div>
-          <div></div>
+        @hasSection('toolbar')
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          @yield('toolbar')
         </div>
+        @endif
 
-        <!-- Card utama berisi judul + aksi + konten -->
         <div class="card shadow-sm">
+          @if(View::hasSection('card_title') || View::hasSection('card_actions'))
           <div class="card-header d-flex justify-content-between align-items-center">
             <div>@yield('card_title')</div>
             <div>@yield('card_actions')</div>
           </div>
+          @endif
           <div class="card-body">
             @yield('content')
           </div>
