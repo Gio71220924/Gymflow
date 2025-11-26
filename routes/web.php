@@ -41,6 +41,10 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
     
+    // Change Password
+    Route::get('/change-password', [UserController::class, 'changePasswordForm'])->name('change-password');
+    Route::post('/change-password', [UserController::class, 'updatePassword'])->name('update-password');
+    
     // Logout   
     Route::post('/logout', [AuthentikasiController::class, 'logout'])->name('logout');
     });

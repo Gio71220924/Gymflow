@@ -208,7 +208,7 @@
         color: rgba(255,255,255,0.5);
       }
 
-      .btn-logout {
+      .btn-logout, .btn-profile-action {
         width: 100%;
         color: rgba(255,255,255,0.7);
         text-align: left;
@@ -217,12 +217,16 @@
         transition: all 0.2s ease;
         font-size: var(--text-sm);
       }
-      .btn-logout:hover {
+      .btn-logout:hover, .btn-profile-action:hover {
         color: #fff;
         background: rgba(255,255,255,0.08);
         text-decoration: none;
       }
-      .btn-logout i { font-size: 1rem; }
+      .btn-logout i, .btn-profile-action i { font-size: 1rem; }
+      
+      .profile-actions {
+        margin-top: var(--space-2);
+      }
     </style>
 
     @yield('styles')
@@ -286,13 +290,19 @@
               </div>
             </div>
           </div>
-          <form action="{{ route('logout') }}" method="POST">
-            @csrf
-            <button type="submit" class="btn-logout btn btn-link d-flex align-items-center">
-              <i class="bi bi-box-arrow-right mr-2"></i>
-              <span class="label">Log Out</span>
-            </button>
-          </form>
+          <div class="profile-actions">
+            <a href="{{ route('change-password') }}" class="btn-profile-action btn btn-link d-flex align-items-center">
+              <i class="bi bi-key mr-2"></i>
+              <span class="label">Ubah Password</span>
+            </a>
+            <form action="{{ route('logout') }}" method="POST">
+              @csrf
+              <button type="submit" class="btn-logout btn btn-link d-flex align-items-center">
+                <i class="bi bi-box-arrow-right mr-2"></i>
+                <span class="label">Log Out</span>
+              </button>
+            </form>
+          </div>
         </div>
 
         <div class="sidebar-resizer" title="Drag to resize"></div>
