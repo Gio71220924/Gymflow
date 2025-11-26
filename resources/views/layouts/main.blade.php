@@ -91,7 +91,7 @@
       }
 
       .sidebar .nav-link {
-        font-size: var(--text-base);
+        font-size: var(--text-sm);
         color: rgba(255,255,255,0.7);
         border-radius: var(--radius-md);
         padding: 0.65rem var(--space-4);
@@ -104,7 +104,7 @@
         font-weight: 500;
       }
       .sidebar .nav-link i {
-        font-size: 1.1rem;
+        font-size: 1rem;
         opacity: 0.85;
         flex-shrink: 0;
       }
@@ -203,13 +203,15 @@
         height: 52px;
         border-radius: 50%;
         flex-shrink: 0;
+        object-fit: cover;
+        aspect-ratio: 1 / 1;
       }
       .user-info {
-        font-size: var(--text-base);
+        font-size: var(--text-sm);
         color: rgba(255,255,255,0.9);
       }
       .user-role {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         color: rgba(255,255,255,0.5);
       }
 
