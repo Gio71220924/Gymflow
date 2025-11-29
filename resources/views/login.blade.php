@@ -100,7 +100,7 @@
           id="password"
           name="password"
           class="form-control @error('password') is-invalid @enderror"
-          placeholder="••••••••"
+          placeholder="********"
           required
           autocomplete="current-password">
         @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -115,6 +115,11 @@
       </div>
 
       <button type="submit" class="btn btn-primary btn-block">Login</button>
+    
+      <div class="text-center mt-3">
+        <small class="text-muted">Belum punya akun?</small>
+        <div><a href="{{ route('register') }}" class="font-weight-semibold">Daftar sekarang</a></div>
+      </div>
     </form>
   </div>
 
