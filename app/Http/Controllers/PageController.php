@@ -25,6 +25,13 @@ class PageController extends Controller
         view()->share('appSettings', $this->appSettings);
     }
 
+    public function landing()
+    {
+        return view('landingpage', [
+            'key' => 'landingpage',
+        ]);
+    }
+    
     public function home()
     {
         $today = Carbon::today();

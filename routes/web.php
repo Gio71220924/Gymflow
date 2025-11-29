@@ -50,6 +50,7 @@ Route::group(['middleware' => ['auth']], function () {
     });
 
 Route::group(['middleware' => ['guest']], function () {
-    Route::get('/', [AuthentikasiController::class, 'loginForm'])->name('login');
+    Route::get('/login', [AuthentikasiController::class, 'loginForm'])->name('login');
     Route::post('/CekLogin' , [AuthentikasiController::class, 'cekLogin'])->name('cekLogin');
+    Route::get('/', [PageController::class, 'landing'])->name('landingpage');
 });
