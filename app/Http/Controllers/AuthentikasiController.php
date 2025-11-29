@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\User;
+use Illuminate\Support\Facades\Hash;
 
 class AuthentikasiController extends Controller
 {
@@ -27,6 +29,34 @@ class AuthentikasiController extends Controller
         return back()->withErrors([
             'email' => 'Email atau password anda salah, silahkan coba kembali.',
         ])->onlyInput('email');
+    }
+
+    public function registerForm()
+    {
+        return view('register', [
+            'key' => 'register',
+        ]);
+    }
+
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name'                  => 'required|string|max:255',
+            'email'                 => 'required|email|max:255|unique:users,email',
+            'password'              => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::create([
+            'name'     => $validated['name'],
+            'email'    => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role'     => User::ROLE_USER,
+            'status'   => User::STATUS_ACTIVE,
+        ]);
+
+        auth()->login($user);
+
+        return redirect()->route('home')->with('success', 'Registrasi berhasil, selamat datang!');
     }
 
     public function logout(Request $request)
