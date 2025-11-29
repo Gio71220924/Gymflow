@@ -28,6 +28,7 @@
     $brandingName = $appSettings['branding_name'] ?? 'GymFlow';
     $brandingTagline = $appSettings['branding_tagline'] ?? '';
     $brandingAddress = $appSettings['branding_address'] ?? '';
+    $canManageBilling = ($isAdmin ?? false) || (Auth::user()->role ?? null) === \App\User::ROLE_SUPER_ADMIN;
   @endphp
 
   @if(session('success'))
@@ -141,6 +142,7 @@
           </td>
           <td>{{ $invoice->due_date ?? '-' }}</td>
           <td>{{ $payment->paid_at ?? '-' }}</td>
+          @if($canManageBilling)
           <td>
             <form method="POST" action="{{ route('billing.update', $invoice->id) }}" class="form-inline">
               @csrf
@@ -166,10 +168,16 @@
               <a class="btn btn-sm btn-outline-secondary mb-2" href="{{ route('billing.print', $invoice->id) }}" target="_blank" rel="noopener">Cetak</a>
             </form>
           </td>
+          @else
+          <td>
+            <a class="btn btn-sm btn-outline-secondary mb-1" href="{{ route('billing.print', $invoice->id) }}" target="_blank" rel="noopener">Lihat / Cetak</a><br>
+            <small class="text-muted">Status diatur oleh admin</small>
+          </td>
+          @endif
         </tr>
       @empty
         <tr>
-          <td colspan="10" class="text-center text-muted">Belum ada invoice.</td>
+          <td colspan="11" class="text-center text-muted">Belum ada invoice.</td>
         </tr>
       @endforelse
     </tbody>
