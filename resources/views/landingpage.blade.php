@@ -10,7 +10,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ $brandName }} | Platform Gym Minimalis</title>
+  <title>{{ $brandName }} | Landing Member</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
@@ -307,6 +307,39 @@
       color: var(--ink);
       margin-bottom: 10px;
     }
+    .class-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-top: 12px;
+    }
+    .class-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      display: grid;
+      gap: 8px;
+    }
+    .class-meta { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 0.95rem; }
+    .class-cap { display: inline-flex; gap: 6px; align-items: center; }
+    .class-cap i { color: var(--brand); }
+    .facility-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .facility-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      display: grid;
+      gap: 8px;
+    }
     .pricing-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -389,14 +422,15 @@
         <div class="mark">{{ strtoupper(substr($brandName, 0, 1)) }}</div>
         <div>
           <div class="brand-name">{{ $brandName }}</div>
-          <div class="brand-tagline">Fitness operating system</div>
+          <div class="brand-tagline">Latihan nyaman, progres nyata</div>
         </div>
       </div>
       <nav class="nav-links">
-        <a href="#features">Fitur</a>
-        <a href="#workflow">Alur</a>
-        <a href="#pricing">Paket</a>
-        <a class="btn ghost" href="{{ route('login') }}">Masuk</a>
+        <a href="#classes">Kelas</a>
+        <a href="#features">Keunggulan</a>
+        <a href="#facilities">Fasilitas</a>
+        <a href="#pricing">Membership</a>
+        <a class="btn ghost" href="{{ route('login') }}">Masuk / Daftar</a>
       </nav>
     </header>
 
@@ -404,17 +438,17 @@
       <section class="hero" id="home">
         <div class="container hero-grid">
           <div class="hero-copy">
-            <span class="pill">Dibuat untuk tim studio & gym yang sibuk</span>
-            <h1>Operasional {{ $brandName }} jadi ringkas, terukur, dan siap berkembang.</h1>
-            <p class="lead">{{ $tagline }}</p>
+            <span class="pill">Rasakan gym yang rapi, kelas terjadwal, pembayaran cashless</span>
+            <h1>Latihan lebih terarah di {{ $brandName }}.</h1>
+            <p class="lead">{{ $tagline }} Member tinggal booking kelas, check-in digital, dan bayar tanpa antre.</p>
             <div class="cta">
-              <a class="btn primary" href="{{ route('login') }}">Masuk Dashboard</a>
-              <a class="btn soft" href="#features">Lihat fitur</a>
+              <a class="btn primary" href="{{ route('login') }}">Masuk / Daftar</a>
+              <a class="btn soft" href="#classes">Lihat jadwal kelas</a>
             </div>
             <div class="hero-points">
-              <div class="point"><i class="bi bi-check2-circle"></i>Status member, jatuh tempo, dan kehadiran terekam otomatis.</div>
-              <div class="point"><i class="bi bi-check2-circle"></i>Tagihan rapi, pembayaran tercatat, invoice siap cetak.</div>
-              <div class="point"><i class="bi bi-check2-circle"></i>Branding, kelas, dan jadwal terasa konsisten untuk member.</div>
+              <div class="point"><i class="bi bi-check2-circle"></i>Check-in cepat lewat ponsel atau barcode.</div>
+              <div class="point"><i class="bi bi-check2-circle"></i>Kelas group & private dengan slot real-time.</div>
+              <div class="point"><i class="bi bi-check2-circle"></i>Pembayaran aman, bukti otomatis terkirim.</div>
             </div>
           </div>
 
@@ -423,9 +457,9 @@
               <div class="panel-head">
                 <div>
                   <div class="eyebrow">Jadwal hari ini</div>
-                  <div class="panel-title">Semua sesi terstruktur</div>
+                  <div class="panel-title">Tinggal pilih slot</div>
                 </div>
-                <span class="pill mini success">Realtime</span>
+                <span class="pill mini success">Live</span>
               </div>
               <div class="schedule">
                 <div class="schedule-row">
@@ -434,7 +468,7 @@
                     <div class="title">HIIT Burn</div>
                   </div>
                   <div class="meta">
-                    <span class="badge success">Penuh</span>
+                    <span class="badge success">Terisi</span>
                     <span class="muted">12/12</span>
                   </div>
                 </div>
@@ -444,7 +478,7 @@
                     <div class="title">Strength Circuit</div>
                   </div>
                   <div class="meta">
-                    <span class="badge info">Check-in</span>
+                    <span class="badge info">Berlangsung</span>
                     <span class="muted">8/14</span>
                   </div>
                 </div>
@@ -455,7 +489,7 @@
                   </div>
                   <div class="meta">
                     <span class="badge">Tersedia</span>
-                    <span class="muted">5 kursi lagi</span>
+                    <span class="muted">5 slot lagi</span>
                   </div>
                 </div>
               </div>
@@ -464,35 +498,35 @@
             <div class="panel panel-stats">
               <div class="panel-head">
                 <div>
-                  <div class="eyebrow" style="color:#9ba8bd;">Arus kas</div>
-                  <div class="panel-title">Tagihan bulan ini</div>
+                  <div class="eyebrow" style="color:#9ba8bd;">Progres kamu</div>
+                  <div class="panel-title">Bulan ini</div>
                 </div>
-                <i class="bi bi-graph-up" aria-hidden="true"></i>
+                <i class="bi bi-fire" aria-hidden="true"></i>
               </div>
               <div class="stat-grid">
                 <div class="stat">
-                  <div class="label">Lunas</div>
-                  <div class="value">Rp 42,5jt</div>
+                  <div class="label">Check-in</div>
+                  <div class="value">12x</div>
                 </div>
                 <div class="stat">
-                  <div class="label">Menunggu</div>
-                  <div class="value">Rp 8,1jt</div>
+                  <div class="label">Kelas selesai</div>
+                  <div class="value">7 sesi</div>
                 </div>
                 <div class="stat">
-                  <div class="label">Jatuh tempo</div>
-                  <div class="value">5 invoice</div>
+                  <div class="label">Kalori terbakar</div>
+                  <div class="value">9.2k</div>
                 </div>
               </div>
-              <div class="progress"><div class="bar" style="width:78%;"></div></div>
+              <div class="progress"><div class="bar" style="width:72%;"></div></div>
               <div class="panel-foot">
-                <span>78% target tercapai</span>
-                <span>Terakhir sinkron 2m lalu</span>
+                <span>72% target mingguan</span>
+                <span>Pengingat aktif</span>
               </div>
             </div>
 
             <div class="floating-note">
               <i class="bi bi-broadcast-pin"></i>
-              Pengingat otomatis sebelum jatuh tempo.
+              Notifikasi sebelum kelas dimulai.
             </div>
           </div>
         </div>
@@ -505,16 +539,16 @@
             <div class="value">120+</div>
           </div>
           <div class="stat-chip">
-            <div class="label">Rata-rata check-in</div>
+            <div class="label">Tingkat hadir</div>
             <div class="value">86%</div>
           </div>
           <div class="stat-chip">
-            <div class="label">Rata-rata konversi tagihan</div>
-            <div class="value">91%</div>
+            <div class="label">Kelas per minggu</div>
+            <div class="value">30+</div>
           </div>
           <div class="stat-chip">
-            <div class="label">Waktu admin</div>
-            <div class="value">-4 jam/minggu</div>
+            <div class="label">Durasi check-in</div>
+            <div class="value">&lt; 20 dtk</div>
           </div>
         </div>
       </section>
@@ -522,61 +556,110 @@
       <section class="section" id="features">
         <div class="container">
           <div class="section-head">
-            <p class="eyebrow">Kenapa {{ $brandName }}</p>
-            <h2>Kontrol penuh operasional di satu layar</h2>
-            <p>Monitor membership, jadwal, billing, sampai identitas brand tanpa tab yang berantakan.</p>
+            <p class="eyebrow">Keunggulan</p>
+            <h2>Semua yang member butuhkan ada di satu app</h2>
+            <p>Booking kelas, cek progres, dan bayar tagihan tanpa antre atau chat panjang.</p>
           </div>
           <div class="feature-grid">
             <article class="feature-card">
               <div class="feature-highlight"></div>
-              <div class="feature-icon"><i class="bi bi-people"></i></div>
-              <h3>Kelola member tanpa ribet</h3>
-              <p>Atur plan, status, catatan, dan foto profil. Semua data tersinkron dengan billing dan jadwal.</p>
-            </article>
-            <article class="feature-card">
-              <div class="feature-highlight"></div>
-              <div class="feature-icon"><i class="bi bi-receipt-cutoff"></i></div>
-              <h3>Tagihan jelas, bukti tersimpan</h3>
-              <p>Invoice otomatis, metode pembayaran fleksibel, dan riwayat pembayaran yang aman untuk audit.</p>
+              <div class="feature-icon"><i class="bi bi-qr-code-scan"></i></div>
+              <h3>Check-in digital</h3>
+              <p>Pakai barcode atau QR, masuk lebih cepat, catatan kehadiran otomatis tersimpan.</p>
             </article>
             <article class="feature-card">
               <div class="feature-highlight"></div>
               <div class="feature-icon"><i class="bi bi-calendar2-week"></i></div>
-              <h3>Jadwal & kehadiran real-time</h3>
-              <p>Buka kelas, pantau kursi tersedia, dan catat check-in. Semua terhubung dengan member aktif.</p>
+              <h3>Slot kelas real-time</h3>
+              <p>Lihat kursi tersisa, pilih coach, dan dapatkan pengingat sebelum kelas mulai.</p>
             </article>
             <article class="feature-card">
               <div class="feature-highlight"></div>
-              <div class="feature-icon"><i class="bi bi-magic"></i></div>
-              <h3>Branding konsisten</h3>
-              <p>Gunakan logo, warna, dan alamat resmi agar pengalaman member terasa premium dan seragam.</p>
+              <div class="feature-icon"><i class="bi bi-heart-pulse"></i></div>
+              <h3>Pantau progres</h3>
+              <p>Track frekuensi latihan, sesi selesai, dan target pribadi tiap minggu.</p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-highlight"></div>
+              <div class="feature-icon"><i class="bi bi-credit-card"></i></div>
+              <h3>Pembayaran cashless</h3>
+              <p>Invoice digital, bukti bayar otomatis, dukung transfer atau e-wallet.</p>
             </article>
           </div>
         </div>
       </section>
 
-      <section class="section" id="workflow">
+      <section class="section" id="classes">
         <div class="container">
           <div class="section-head">
-            <p class="eyebrow">Alur kerja</p>
-            <h2>Mulai dalam tiga langkah sederhana</h2>
-            <p>Pilih plan, cek dashboard, dan biarkan pengingat otomatis berjalan di belakang layar.</p>
+            <p class="eyebrow">Pilihan kelas</p>
+            <h2>Kelas favorit untuk semua level</h2>
+            <p>Jadwal berganti setiap minggu. Pilih sesi pagi, siang, atau malam sesuai waktu kamu.</p>
           </div>
-          <div class="flow-steps">
-            <div class="flow-step">
-              <div class="step-num">1</div>
-              <h3>Masuk dashboard</h3>
-              <p>Login, cek status member, dan lihat gambaran umum performa gym.</p>
+          <div class="class-grid">
+            <div class="class-card">
+              <div class="class-meta">
+                <span class="pill mini soft">Pagi</span>
+                <span class="class-cap"><i class="bi bi-people"></i>12 kursi</span>
+              </div>
+              <h3>HIIT Burn</h3>
+              <p>Latihan intensitas tinggi 45 menit untuk membakar kalori maksimal.</p>
+              <div class="class-meta">
+                <span><i class="bi bi-clock"></i> 07.00</span>
+                <span><i class="bi bi-lightning-charge"></i> Level menengah</span>
+              </div>
             </div>
-            <div class="flow-step">
-              <div class="step-num">2</div>
-              <h3>Rapikan jadwal & tagihan</h3>
-              <p>Buka kelas, atur kapasitas, buat invoice, dan aktifkan pengingat otomatis.</p>
+            <div class="class-card">
+              <div class="class-meta">
+                <span class="pill mini soft">Siang</span>
+                <span class="class-cap"><i class="bi bi-people"></i>14 kursi</span>
+              </div>
+              <h3>Strength Circuit</h3>
+              <p>Bangun kekuatan dan stabilitas dengan kombinasi barbell dan bodyweight.</p>
+              <div class="class-meta">
+                <span><i class="bi bi-clock"></i> 12.30</span>
+                <span><i class="bi bi-graph-up"></i> Level fleksibel</span>
+              </div>
             </div>
-            <div class="flow-step">
-              <div class="step-num">3</div>
-              <h3>Monitor & tumbuh</h3>
-              <p>Pantau check-in, konversi pembayaran, dan optimalkan kapasitas kelas harian.</p>
+            <div class="class-card">
+              <div class="class-meta">
+                <span class="pill mini soft">Malam</span>
+                <span class="class-cap"><i class="bi bi-people"></i>10 kursi</span>
+              </div>
+              <h3>Mobility Flow</h3>
+              <p>Recovery, perbaiki postur, dan tingkatkan fleksibilitas sebelum tidur.</p>
+              <div class="class-meta">
+                <span><i class="bi bi-clock"></i> 19.00</span>
+                <span><i class="bi bi-stars"></i> Cocok pemula</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="facilities">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Fasilitas</p>
+            <h2>Ruang latihan yang siap dipakai</h2>
+            <p>Peralatan diperbarui rutin, area bersih, dan staf siap membantu.</p>
+          </div>
+          <div class="facility-grid">
+            <div class="facility-card">
+              <strong>Free weights lengkap</strong>
+              <p>Dumbbell, barbell, rack, dan platform untuk semua program.</p>
+            </div>
+            <div class="facility-card">
+              <strong>Studio kelas nyaman</strong>
+              <p>AC, pencahayaan hangat, dan sound system untuk sesi group.</p>
+            </div>
+            <div class="facility-card">
+              <strong>Locker & shower</strong>
+              <p>Ruangan bersih dengan loker aman serta air panas.</p>
+            </div>
+            <div class="facility-card">
+              <strong>Area recovery</strong>
+              <p>Foam roller, mat, dan alat mobilitas untuk pendinginan.</p>
             </div>
           </div>
         </div>
@@ -585,32 +668,32 @@
       <section class="section" id="pricing">
         <div class="container">
           <div class="section-head">
-            <p class="eyebrow">Paket</p>
-            <h2>Pilih ritme bisnis yang pas</h2>
-            <p>Harga transparan sesuai kebutuhan, siap digunakan langsung.</p>
+            <p class="eyebrow">Membership</p>
+            <h2>Pilih ritme yang pas buatmu</h2>
+            <p>Mulai dari akses dasar sampai premium dengan pengingat otomatis.</p>
           </div>
           <div class="pricing-grid">
             <div class="pricing-card">
               <span class="pill mini soft">Basic</span>
               <div class="price">Rp {{ $basicPrice }} <span>/bulan</span></div>
-              <p>Untuk studio yang baru menata sistem dan ingin alur kerja rapi.</p>
+              <p>Akses penuh gym dan kelas populer untuk menjaga konsistensi latihan.</p>
               <ul class="pricing-list">
-                <li><i class="bi bi-check2-circle"></i>Manajemen member & plan</li>
-                <li><i class="bi bi-check2-circle"></i>Invoice digital & cetak</li>
-                <li><i class="bi bi-check2-circle"></i>Jadwal kelas dasar</li>
-                <li><i class="bi bi-check2-circle"></i>Branding warna & logo</li>
+                <li><i class="bi bi-check2-circle"></i>Akses gym & kelas reguler</li>
+                <li><i class="bi bi-check2-circle"></i>Check-in digital</li>
+                <li><i class="bi bi-check2-circle"></i>Invoice & bukti bayar</li>
+                <li><i class="bi bi-check2-circle"></i>Branding {{ $brandName }}</li>
               </ul>
-              <a class="btn soft" href="{{ route('login') }}">Gunakan Basic</a>
+              <a class="btn soft" href="{{ route('login') }}">Pilih Basic</a>
             </div>
             <div class="pricing-card highlight">
               <span class="pill mini">Premium</span>
               <div class="price">Rp {{ $premiumPrice }} <span>/bulan</span></div>
-              <p>Tingkatkan skala, minimalkan pekerjaan manual, dan percepat pembayaran.</p>
+              <p>Semua fasilitas, kelas premium, reminder otomatis, dan prioritas booking.</p>
               <ul class="pricing-list">
+                <li><i class="bi bi-check2-circle"></i>Kelas lanjutan & kapasitas prioritas</li>
                 <li><i class="bi bi-check2-circle"></i>Reminder pembayaran otomatis</li>
-                <li><i class="bi bi-check2-circle"></i>Kelas & kapasitas lanjutan</li>
-                <li><i class="bi bi-check2-circle"></i>Pelacakan kehadiran detail</li>
-                <li><i class="bi bi-check2-circle"></i>Dukungan branding lengkap</li>
+                <li><i class="bi bi-check2-circle"></i>Pelacakan progres detail</li>
+                <li><i class="bi bi-check2-circle"></i>Dukungan cepat dari tim</li>
               </ul>
               <a class="btn primary" href="{{ route('login') }}">Pilih Premium</a>
             </div>
@@ -622,13 +705,13 @@
         <div class="container">
           <div class="cta-card">
             <div>
-              <p class="eyebrow" style="color: rgba(255,255,255,0.78);">Siap mulai</p>
-              <h2>Terima member baru dengan pengalaman terbaik.</h2>
-              <p>Masuk ke dashboard {{ $brandName }}, atur jadwal pertama, dan biarkan pengingat berjalan otomatis.</p>
+              <p class="eyebrow" style="color: rgba(255,255,255,0.78);">Mulai hari ini</p>
+              <h2>Booking kelas pertama kamu di {{ $brandName }}.</h2>
+              <p>Masuk atau daftar, pilih jadwal, dan terima pengingat otomatis sebelum kelas.</p>
             </div>
             <div class="cta-actions">
-              <a class="btn primary" href="{{ route('login') }}">Masuk sekarang</a>
-              <a class="btn" href="#features">Lihat alur</a>
+              <a class="btn primary" href="{{ route('login') }}">Masuk / Daftar</a>
+              <a class="btn" href="#classes">Lihat kelas</a>
             </div>
           </div>
         </div>
@@ -639,12 +722,12 @@
       <div class="container footer-grid">
         <div>
           <div class="brand-name">{{ $brandName }}</div>
-          <p>Platform minimalis untuk mengelola member, kelas, dan pembayaran gym Anda.</p>
+          <p>Tempat latihan yang rapi, modern, dan siap menemani progresmu.</p>
         </div>
         <div class="footer-links">
-          <a href="#features">Fitur</a>
-          <a href="#pricing">Paket</a>
-          <a href="{{ route('login') }}">Masuk</a>
+          <a href="#classes">Kelas</a>
+          <a href="#pricing">Membership</a>
+          <a href="{{ route('login') }}">Masuk / Daftar</a>
         </div>
       </div>
     </footer>
