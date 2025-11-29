@@ -309,7 +309,9 @@
             @endif
           </a>
 
+          @php $role = Auth::user()->role ?? null; @endphp
           <nav class="nav flex-column">
+            @if($role === \App\User::ROLE_SUPER_ADMIN)
             <a class="nav-link {{ ($key ?? '') === 'home' ? 'active' : '' }}" href="{{ route('home') }}">
               <i class="bi bi-speedometer2"></i>
               <span class="label">Dashboard</span>
@@ -334,6 +336,24 @@
               <i class="bi bi-gear"></i>
               <span class="label">Settings</span>
             </a>
+            @else
+            <a class="nav-link {{ ($key ?? '') === 'user-home' ? 'active' : '' }}" href="{{ route('home') }}">
+              <i class="bi bi-house"></i>
+              <span class="label">Beranda</span>
+            </a>
+            <a class="nav-link {{ ($key ?? '') === 'class' ? 'active' : '' }}" href="/class">
+              <i class="bi bi-calendar-event"></i>
+              <span class="label">Jadwal</span>
+            </a>
+            <a class="nav-link {{ ($key ?? '') === 'billing' ? 'active' : '' }}" href="/billing">
+              <i class="bi bi-receipt"></i>
+              <span class="label">Tagihan</span>
+            </a>
+            <a class="nav-link {{ ($key ?? '') === 'change-password' ? 'active' : '' }}" href="{{ route('change-password') }}">
+              <i class="bi bi-person"></i>
+              <span class="label">Profil</span>
+            </a>
+            @endif
           </nav>
         </div>
 
