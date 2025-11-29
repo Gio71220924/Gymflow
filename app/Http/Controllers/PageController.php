@@ -34,6 +34,43 @@ class PageController extends Controller
     
     public function home()
     {
+        $user = auth()->user();
+        if ($user && $user->role === User::ROLE_USER) {
+            $member = $user->memberGym;
+            $membership = null;
+            $latestInvoice = null;
+            $daysLeft = null;
+            $invoiceDueIn = null;
+
+            if ($member) {
+                $membership = $member->memberMemberships()
+                    ->with(['plan', 'invoices' => function ($q) {
+                        $q->latest('due_date')->latest('id');
+                    }])
+                    ->latest('id')
+                    ->first();
+
+                $latestInvoice = $membership ? $membership->invoices->first() : null;
+
+                if ($membership && $membership->end_date) {
+                    $daysLeft = Carbon::now()->diffInDays(Carbon::parse($membership->end_date), false);
+                }
+
+                if ($latestInvoice && $latestInvoice->due_date) {
+                    $invoiceDueIn = Carbon::now()->diffInDays(Carbon::parse($latestInvoice->due_date), false);
+                }
+            }
+
+            return view('user-home', [
+                'key'           => 'user-home',
+                'member'        => $member,
+                'membership'    => $membership,
+                'latestInvoice' => $latestInvoice,
+                'daysLeft'      => $daysLeft,
+                'invoiceDueIn'  => $invoiceDueIn,
+            ]);
+        }
+
         $today = Carbon::today();
         $next7 = $today->copy()->addDays(7);
 
@@ -118,13 +155,29 @@ class PageController extends Controller
 
     public function billing()
     {
-        $invoices = Invoice::with([
+        $user = auth()->user();
+        $isUser = $user && $user->role === User::ROLE_USER;
+
+        $query = Invoice::with([
             'memberMembership.member',
             'memberMembership.plan',
             'payments' => function ($q) {
                 $q->latest('paid_at')->latest('id');
             },
-        ])->orderByDesc('id')->get();
+        ]);
+
+        if ($isUser) {
+            $memberId = optional($user->memberGym)->id;
+            $query->whereHas('memberMembership', function ($q) use ($memberId) {
+                if ($memberId) {
+                    $q->where('member_id', $memberId);
+                } else {
+                    $q->whereRaw('1 = 0');
+                }
+            });
+        }
+
+        $invoices = $query->orderByDesc('id')->get();
 
         foreach ($invoices as $inv) {
             $this->recalcInvoiceTotal($inv);
@@ -143,6 +196,7 @@ class PageController extends Controller
             'key'      => 'billing',
             'invoices' => $invoices,
             'summary'  => $summary,
+            'isAdmin'  => $user && $user->role === User::ROLE_SUPER_ADMIN,
         ]);
     }
 
