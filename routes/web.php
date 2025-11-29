@@ -52,5 +52,7 @@ Route::group(['middleware' => ['auth']], function () {
 Route::group(['middleware' => ['guest']], function () {
     Route::get('/login', [AuthentikasiController::class, 'loginForm'])->name('login');
     Route::post('/CekLogin' , [AuthentikasiController::class, 'cekLogin'])->name('cekLogin');
+    Route::get('/register', [AuthentikasiController::class, 'registerForm'])->name('register');
+    Route::post('/register', [AuthentikasiController::class, 'register'])->name('register.save');
     Route::get('/', [PageController::class, 'landing'])->name('landingpage');
 });
