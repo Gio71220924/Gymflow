@@ -31,6 +31,7 @@
   .member-hero p { margin: 0; color: rgba(31,19,12,0.85); }
   .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; z-index: 1; position: relative; }
   .hero-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.9); color: #1f130c; font-weight: 700; font-size: 0.9rem; box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+  .hero-chip.inactive { background: rgba(255,255,255,0.85); color: #8f2b1f; border: 1px solid rgba(193,79,45,0.35); }
   .hero-chip-wrap { margin-left: auto; display: flex; align-items: flex-start; z-index: 1; }
   .pill-mini { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,0.85); color: #1f130c; font-weight: 700; font-size: 0.82rem; }
   .stat-card { background: var(--neutral-card); border: 1px solid var(--neutral-border); border-radius: 12px; padding: 18px; box-shadow: var(--shadow-sm); height: 100%; }
@@ -98,6 +99,11 @@
       $elapsed   = max(0, min($totalDays, Carbon::parse($startDate)->diffInDays(Carbon::now())));
       $membershipProgress = round(($elapsed / $totalDays) * 100);
   }
+  $normalizedStatus = strtolower(trim($membershipStatus));
+  $isActiveMembership = in_array($normalizedStatus, ['aktif', 'active']);
+  $heroChipText = $isActiveMembership ? 'Membership aktif' : 'Membership tidak aktif';
+  $heroChipIcon = $isActiveMembership ? 'bi-shield-check' : 'bi-exclamation-triangle';
+  $heroChipClass = $isActiveMembership ? '' : ' inactive';
   $schedulePreview = [
     ['time' => '07.00', 'title' => 'HIIT Burn', 'status' => 'Penuh', 'variant' => 'success', 'slots' => '12/12'],
     ['time' => '12.30', 'title' => 'Strength Circuit', 'status' => 'Berlangsung', 'variant' => 'info', 'slots' => '8/14'],
@@ -118,7 +124,7 @@
     </div>
   </div>
   <div class="hero-chip-wrap">
-    <span class="hero-chip"><i class="bi bi-shield-check"></i>Membership aktif</span>
+    <span class="hero-chip{{ $heroChipClass }}"><i class="bi {{ $heroChipIcon }}"></i>{{ $heroChipText }}</span>
   </div>
 </div>
 
