@@ -29,6 +29,10 @@
       --radius: 14px;
     }
     * { box-sizing: border-box; }
+    html {
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+    }
     body {
       margin: 0;
       background: linear-gradient(180deg, #f8f9fb 0%, #f3f4f6 100%);
@@ -36,6 +40,8 @@
       font-family: 'Sora', sans-serif;
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      width: 100%;
     }
     a { color: inherit; text-decoration: none; }
     h1, h2, h3, h4 { font-family: 'Space Grotesk', 'Sora', sans-serif; letter-spacing: -0.02em; margin: 0; }
@@ -51,7 +57,13 @@
     .gradient-1 { width: 360px; height: 360px; top: -120px; left: -60px; background: radial-gradient(circle, rgba(252,119,83,0.35) 0%, rgba(255,255,255,0) 65%); }
     .gradient-2 { width: 320px; height: 320px; bottom: 10%; right: 5%; background: radial-gradient(circle, rgba(15,23,42,0.18) 0%, rgba(255,255,255,0) 60%); }
     .gradient-3 { width: 280px; height: 280px; bottom: 30%; left: 10%; background: radial-gradient(circle, rgba(255,188,143,0.25) 0%, rgba(255,255,255,0) 65%); }
-    .container { width: min(1160px, 92vw); margin: 0 auto; }
+    .container { 
+      width: min(1160px, 92vw); 
+      margin: 0 auto; 
+      max-width: 100%;
+      padding-left: max(20px, env(safe-area-inset-left));
+      padding-right: max(20px, env(safe-area-inset-right));
+    }
     .topbar {
       position: sticky;
       top: 0;
@@ -111,6 +123,7 @@
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
       padding: 12px 16px;
       border-radius: 14px;
@@ -119,6 +132,8 @@
       border: 1px solid var(--line);
       background: #fff;
       transition: all 0.2s ease;
+      cursor: pointer;
+      text-decoration: none;
     }
     .btn.primary {
       background: linear-gradient(120deg, var(--brand), #ffb686);
@@ -171,16 +186,17 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
       padding: 12px 14px;
       border: 1px solid var(--line);
       border-radius: 12px;
       background: #fff;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+      flex-wrap: wrap;
     }
-    .schedule-row .time { font-weight: 700; color: var(--ink); }
-    .schedule-row .title { font-weight: 600; }
-    .schedule-row .meta { display: flex; align-items: center; gap: 8px; }
+    .schedule-row .time { font-weight: 700; color: var(--ink); min-width: 50px; }
+    .schedule-row .title { font-weight: 600; word-break: break-word; }
+    .schedule-row .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .badge {
       display: inline-flex;
       align-items: center;
@@ -322,8 +338,8 @@
       display: grid;
       gap: 8px;
     }
-    .class-meta { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 0.95rem; }
-    .class-cap { display: inline-flex; gap: 6px; align-items: center; }
+    .class-meta { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 0.95rem; flex-wrap: wrap; gap: 8px; }
+    .class-cap { display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; }
     .class-cap i { color: var(--brand); }
     .facility-grid {
       display: grid;
@@ -401,13 +417,83 @@
     }
     .footer-links { display: flex; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
     .footer-links a { padding: 6px 0; color: var(--muted); }
+    @media (max-width: 1024px) and (min-width: 781px) {
+      .hero-copy h1 { font-size: 2.6rem; }
+      .section-head h2 { font-size: 2rem; }
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    
     @media (max-width: 780px) {
-      .topbar { position: static; border-radius: 0 0 18px 18px; }
-      .hero { padding-top: 40px; }
+      .topbar { 
+        position: static; 
+        border-radius: 0 0 18px 18px; 
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 16px 20px;
+      }
+      .brand { margin-bottom: 12px; }
+      .nav-links { 
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .nav-links a { 
+        width: 100%;
+        text-align: center;
+      }
+      .hero { padding-top: 30px; }
       .hero-grid { grid-template-columns: 1fr; }
-      .cta-card { grid-template-columns: 1fr; text-align: left; }
-      .floating-note { position: relative; top: auto; right: auto; margin-top: 10px; }
-      .nav-links { justify-content: flex-end; }
+      .hero-copy h1 { font-size: 2rem; }
+      .hero-copy .lead { font-size: 1rem; }
+      .cta { flex-direction: column; }
+      .cta .btn { width: 100%; justify-content: center; }
+      .cta-card { 
+        grid-template-columns: 1fr; 
+        text-align: left;
+        padding: 24px 20px;
+      }
+      .cta-actions { 
+        justify-content: stretch; 
+        flex-direction: column;
+      }
+      .cta-actions .btn { 
+        width: 100%;
+        justify-content: center;
+      }
+      .floating-note { 
+        position: relative; 
+        top: auto; 
+        right: auto; 
+        margin-top: 10px; 
+      }
+      .feature-grid { grid-template-columns: 1fr; }
+      .class-grid { grid-template-columns: 1fr; }
+      .facility-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .stat-strip { 
+        grid-template-columns: repeat(2, 1fr);
+        padding: 16px;
+      }
+      .footer-grid { 
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .footer-links { 
+        justify-content: center;
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .container { width: 95vw; }
+      .hero-copy h1 { font-size: 1.75rem; }
+      .section-head h2 { font-size: 1.5rem; }
+      .stat-strip { grid-template-columns: 1fr; }
+      .brand-name { font-size: 0.95rem; }
+      .brand .mark { width: 38px; height: 38px; font-size: 16px; }
+      .price { font-size: 1.75rem; }
     }
   </style>
 </head>
