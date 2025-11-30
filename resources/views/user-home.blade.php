@@ -14,6 +14,10 @@
     background: linear-gradient(135deg, var(--brand-primary) 0%, #ffb686 70%);
     color: #1f130c;
     box-shadow: 0 18px 40px rgba(252,119,83,0.25);
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
   }
   .member-hero::after {
     content: '';
@@ -27,6 +31,7 @@
   .member-hero p { margin: 0; color: rgba(31,19,12,0.85); }
   .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; z-index: 1; position: relative; }
   .hero-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.9); color: #1f130c; font-weight: 700; font-size: 0.9rem; box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+  .hero-chip-wrap { margin-left: auto; display: flex; align-items: flex-start; z-index: 1; }
   .pill-mini { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,0.85); color: #1f130c; font-weight: 700; font-size: 0.82rem; }
   .stat-card { background: var(--neutral-card); border: 1px solid var(--neutral-border); border-radius: 12px; padding: 18px; box-shadow: var(--shadow-sm); height: 100%; }
   .stat-card h5 { margin: 0 0 6px; font-weight: 700; font-size: 1.1rem; }
@@ -40,13 +45,20 @@
   .quick-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(252,119,83,0.12); color: var(--brand-primary); font-size: 1.1rem; }
   .schedule-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
   .schedule-item { border: 1px solid var(--neutral-border); border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; background: var(--neutral-card); box-shadow: inset 0 1px 0 rgba(255,255,255,0.5); }
-  .schedule-item .time { font-weight: 800; color: var(--brand-dark); width: 68px; }
-  .schedule-item .title { font-weight: 700; color: var(--brand-dark); }
+  .schedule-item .time { font-weight: 800; color: var(--brand-ink); width: 68px; }
+  .schedule-item .title { font-weight: 700; color: var(--brand-ink); }
   .schedule-item .meta { display: inline-flex; align-items: center; gap: 8px; color: var(--neutral-text); }
   .badge-soft { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; background: rgba(252,119,83,0.12); color: #c14f2d; }
   .badge-soft.success { background: rgba(40,199,111,0.16); color: #126f3f; }
   .badge-soft.info { background: rgba(15,23,42,0.08); color: #0f172a; }
   .note-card { background: var(--neutral-light); border: 1px solid var(--neutral-border); border-radius: 12px; padding: 14px; }
+  :root[data-theme="dark"] .schedule-item .time,
+  :root[data-theme="dark"] .schedule-item .title { color: var(--neutral-ink-strong); }
+  :root[data-theme="dark"] .schedule-item .meta { color: var(--neutral-text); }
+  @media (max-width: 768px) {
+    .member-hero { flex-direction: column; }
+    .hero-chip-wrap { margin-left: 0; }
+  }
 </style>
 @endsection
 
@@ -105,7 +117,7 @@
       <a class="btn btn-outline-dark btn-sm border-dark" href="{{ route('change-password') }}">Profil</a>
     </div>
   </div>
-  <div style="margin-left:auto; z-index:1;">
+  <div class="hero-chip-wrap">
     <span class="hero-chip"><i class="bi bi-shield-check"></i>Membership aktif</span>
   </div>
 </div>
