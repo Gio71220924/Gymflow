@@ -8,23 +8,38 @@
     <div class="card-body">
       <h5 class="card-title mb-3">Jadwal Kelas</h5>
 
+      {{-- Search bar method get --}}
       <form action="/class/searching" method="GET" class="mb-3">
         <div class="form-row align-items-center">
           <div class="col-12 col-md-6 mb-2 mb-md-0">
             <input type="text" class="form-control" name="q" id="q"
-                   placeholder="Cari: judul kelas/Nama instruktur/lokasi/Status">
+                  placeholder="Cari: judul kelas/Nama instruktur/lokasi/Status"
+                  value="{{ request('q') }}">
           </div>
+
+          <div class="col-auto mb-2 mb-md-0">
+            <select name="per_page" class="form-control" onchange="this.form.submit()">
+              @foreach([10, 20, 50] as $size)
+                <option value="{{ $size }}" {{ (int)request('per_page', 10) === $size ? 'selected' : '' }}>
+                  {{ $size }} / halaman
+                </option>
+              @endforeach
+            </select>
+          </div>
+
           <div class="col-auto">
             <button type="submit" class="btn btn-primary">Search</button>
             <a href="/class" class="btn btn-light">Reset</a>
           </div>
         </div>
+
         @if(request('q'))
           <small class="text-muted d-block mt-2">
             Menampilkan hasil untuk keyword: “{{ request('q') }}”
           </small>
         @endif
       </form>
+
 
       <div class="table-responsive">
         <table class="table table-striped table-bordered table-hover w-100 mb-0">
@@ -76,7 +91,10 @@
       {{-- Pagination --}}
       @if(isset($classes) && method_exists($classes, 'links'))
         <div class="mt-3">
-          {{ $classes->appends(['q' => request('q')])->links() }}
+          {{ $classes->appends([
+            'q'        => request('q'),
+            'per_page' => request('per_page', 10),
+          ])->links() }}
         </div>
       @endif
     </div>
