@@ -13,6 +13,8 @@ Route::group(['middleware' => ['auth']], function () {
 
     // Classes (rename method agar tidak bentrok keyword)
     Route::get('/class', [PageController::class, 'classPage'])->name('class');
+    Route::get('/class/searching', [PageController::class, 'searchclass'])->name('search-class');
+
 
     // Billing
     Route::get('/billing', [PageController::class, 'billing'])->name('billing');
