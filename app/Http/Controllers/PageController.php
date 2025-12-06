@@ -11,6 +11,7 @@ use App\Invoice;
 use App\Payment;
 use App\AppSetting;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
@@ -322,7 +323,50 @@ class PageController extends Controller
     public function saveSettings(Request $request)
     {
         $section = $request->input('section');
-        if ($section === 'billing') {
+        if ($section === 'account') {
+            $user = $request->user();
+
+            $validated = $request->validate([
+                'current_password'          => 'required_with:new_password',
+                'new_password'              => 'nullable|string|min:8|confirmed',
+                'foto_profil'               => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            ]);
+
+            $passwordUpdated = false;
+            if (!empty($validated['new_password'])) {
+                if (!Hash::check($validated['current_password'] ?? '', $user->password)) {
+                    return back()->with('error', 'Password lama tidak sesuai.')->withInput();
+                }
+
+                $user->update([
+                    'password' => Hash::make($validated['new_password']),
+                ]);
+                $passwordUpdated = true;
+            }
+
+            $photoUpdated = false;
+            $member = $user->memberGym;
+            if ($request->hasFile('foto_profil')) {
+                if (!$member) {
+                    return back()->with('error', 'Profil member tidak ditemukan.')->withInput();
+                }
+
+                if (!empty($member->foto_profil)) {
+                    Storage::disk('public')->delete('foto_profil/' . $member->foto_profil);
+                }
+                $fileName = time() . '-' . $request->file('foto_profil')->getClientOriginalName();
+                $request->file('foto_profil')->storeAs('foto_profil', $fileName, 'public');
+                $member->foto_profil = $fileName;
+                $member->save();
+                $photoUpdated = true;
+            }
+
+            if (!$passwordUpdated && !$photoUpdated) {
+                return back()->with('success', 'Tidak ada perubahan disimpan.');
+            }
+
+            return back()->with('success', 'Pengaturan akun berhasil diperbarui.');
+        } elseif ($section === 'billing') {
             $payload = $request->validate([
                 'billing_basic_price'      => 'nullable|numeric|min:0',
                 'billing_premium_price'    => 'nullable|numeric|min:0',

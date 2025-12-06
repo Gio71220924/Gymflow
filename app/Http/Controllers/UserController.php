@@ -60,7 +60,8 @@ class UserController extends Controller
     public function changePasswordForm()
     {
         return view('change-password', [
-            'key' => 'change-password',
+            'key'    => 'change-password',
+            'member' => auth()->user()->memberGym,
         ]);
     }
 
