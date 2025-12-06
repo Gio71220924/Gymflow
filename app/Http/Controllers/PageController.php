@@ -10,6 +10,7 @@ use App\MemberMembership;
 use App\Invoice;
 use App\Payment;
 use App\AppSetting;
+use App\GymClass;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -36,6 +37,7 @@ class PageController extends Controller
     public function home()
     {
         $user = auth()->user();
+        //Khusus user biasa
         if ($user && $user->role === User::ROLE_USER) {
             $member = $user->memberGym;
             $membership = null;
@@ -72,6 +74,7 @@ class PageController extends Controller
             ]);
         }
 
+        // Admin / Super Admin dashboard
         $today = Carbon::today();
         $next7 = $today->copy()->addDays(7);
 
@@ -146,9 +149,15 @@ class PageController extends Controller
         ]);
     }
 
-    // Ganti nama method ini dari "class" -> "classPage"
-    public function classPage()
+
+    public function classPage(Request $request)
     {
+        $q       = $request->input('q');
+        $perPage = (int) $request->input('per_page', 10);
+        if (! in_array($perPage, [10, 20, 50], true)) {
+            $perPage = 10;
+        }
+
         $classes = DB::table('gym_classes as gc')
             ->select('gc.*')
             ->selectSub(function ($query) {
@@ -157,57 +166,109 @@ class PageController extends Controller
                     ->whereColumn('ct.class_id', 'gc.id')
                     ->selectRaw("GROUP_CONCAT(t.name ORDER BY ct.role SEPARATOR ', ')");
             }, 'trainer_names')
+            ->when($q, function ($query, $q) {
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('gc.title', 'like', '%' . $q . '%')
+                        ->orWhere('gc.location', 'like', '%' . $q . '%')
+                        ->orWhere('gc.status', 'like', '%' . $q . '%')
+                        ->orWhereRaw("EXISTS (
+                            SELECT 1 FROM class_trainers AS ct
+                            JOIN trainers AS t ON t.id = ct.trainer_id
+                            WHERE ct.class_id = gc.id AND t.name LIKE ?
+                        )", ['%' . $q . '%']);
+                });
+            })
             ->orderBy('gc.start_at')
-            ->get();
+            ->paginate($perPage)
+            ->appends([
+                'q'        => $q,
+                'per_page' => $perPage,
+            ]);
+
+        $isAdmin = $request->user() && $request->user()->role === User::ROLE_SUPER_ADMIN;
 
         return view('class', [
-            'key'     => 'class',
-            'classes' => $classes,
+            'key'         => 'class',
+            'classes'     => $classes,
+            'searchQuery' => $q,
+            'perPage'     => $perPage,
+            'isAdmin'     => $isAdmin,
         ]);
     }
 
     public function searchclass(Request $request)
     {
-        $q       = $request->input('q');
-        $perPage = (int) $request->input('per_page', 10); // default 10
-        if (! in_array($perPage, [10, 20, 50], true)) {
-            $perPage = 10; // guard
-        }
+        return $this->classPage($request);
+    }
 
-    $classes = DB::table('gym_classes as gc')
-        ->select('gc.*')
-        ->selectSub(function ($query) {
-            $query->from('class_trainers as ct')
-                ->join('trainers as t', 't.id', '=', 'ct.trainer_id')
-                ->whereColumn('ct.class_id', 'gc.id')
-                ->selectRaw("GROUP_CONCAT(t.name ORDER BY ct.role SEPARATOR ', ')");
-        }, 'trainer_names')
-        ->when($q, function ($query, $q) {
-            $query->where(function ($sub) use ($q) {
-                $sub->where('gc.title', 'like', '%' . $q . '%')
-                    ->orWhereRaw("EXISTS (
-                        SELECT 1 FROM class_trainers AS ct
-                        JOIN trainers AS t ON t.id = ct.trainer_id
-                        WHERE ct.class_id = gc.id AND t.name LIKE ?
-                    )", ['%' . $q . '%'])
-                    ->orWhere('gc.location', 'like', '%' . $q . '%')
-                    ->orWhere('gc.status', 'like', '%' . $q . '%');
-            });
-        })
-        ->orderBy('gc.start_at')
-        ->paginate($perPage)
-        ->appends([
-            'q'        => $q,
-            'per_page' => $perPage,
+    public function createClassForm(Request $request)
+    {
+        $this->ensureSuperAdmin($request);
+
+        return view('class-form', [
+            'key'                => 'class',
+            'mode'               => 'create',
+            'classData'          => null,
+            'trainers'           => $this->getTrainerOptions(),
+            'selectedTrainerIds' => [],
         ]);
+    }
 
-    return view('class', [
-        'key'         => 'class',
-        'classes'     => $classes,
-        'searchQuery' => $q,
-        'perPage'     => $perPage,
-    ]);
-}
+    public function storeClass(Request $request)
+    {
+        $this->ensureSuperAdmin($request);
+        $payload = $this->validateClassPayload($request);
+        $trainerIds = $payload['trainer_ids'] ?? [];
+        unset($payload['trainer_ids']);
+
+        $class = GymClass::create($payload);
+        $this->syncClassTrainers($class, $trainerIds);
+
+        return redirect()->route('class')->with('success', 'Kelas berhasil dibuat.');
+    }
+
+    public function editClassForm(Request $request, $id)
+    {
+        $this->ensureSuperAdmin($request);
+
+        $class = GymClass::findOrFail($id);
+        $selectedTrainerIds = DB::table('class_trainers')
+            ->where('class_id', $id)
+            ->pluck('trainer_id')
+            ->toArray();
+
+        return view('class-form', [
+            'key'                => 'class',
+            'mode'               => 'edit',
+            'classData'          => $class,
+            'trainers'           => $this->getTrainerOptions(),
+            'selectedTrainerIds' => $selectedTrainerIds,
+        ]);
+    }
+
+    public function updateClass(Request $request, $id)
+    {
+        $this->ensureSuperAdmin($request);
+        $class = GymClass::findOrFail($id);
+
+        $payload = $this->validateClassPayload($request);
+        $trainerIds = $payload['trainer_ids'] ?? [];
+        unset($payload['trainer_ids']);
+
+        $class->update($payload);
+        $this->syncClassTrainers($class, $trainerIds);
+
+        return redirect()->route('class')->with('success', 'Kelas berhasil diperbarui.');
+    }
+
+    public function deleteClass(Request $request, $id)
+    {
+        $this->ensureSuperAdmin($request);
+        $class = GymClass::findOrFail($id);
+        $class->delete();
+
+        return redirect()->route('class')->with('success', 'Kelas berhasil dihapus.');
+    }
 
 
     /* ======================== BILLING ======================== */
@@ -718,5 +779,58 @@ class PageController extends Controller
     private function saveSetting(string $key, $value)
     {
         AppSetting::updateOrCreate(['key' => $key], ['value' => $value]);
+    }
+
+    private function ensureSuperAdmin(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || !$user->isSuperAdmin()) {
+            abort(403, 'Hanya admin yang dapat mengelola kelas.');
+        }
+    }
+
+    private function validateClassPayload(Request $request)
+    {
+        return $request->validate([
+            'title'        => 'required|string|max:255',
+            'description'  => 'nullable|string',
+            'level'        => 'nullable|string|max:100',
+            'capacity'     => 'required|integer|min:0',
+            'location'     => 'nullable|string|max:255',
+            'start_at'     => 'required|date',
+            'end_at'       => 'required|date|after:start_at',
+            'type'         => 'nullable|string|max:100',
+            'status'       => 'required|in:Scheduled,Cancelled,Done',
+            'trainer_ids'  => 'nullable|array',
+            'trainer_ids.*'=> 'integer|exists:trainers,id',
+        ]);
+    }
+
+    private function syncClassTrainers(GymClass $class, array $trainerIds)
+    {
+        DB::table('class_trainers')->where('class_id', $class->id)->delete();
+
+        if (empty($trainerIds)) {
+            return;
+        }
+
+        $rows = [];
+        foreach ($trainerIds as $tid) {
+            $rows[] = [
+                'class_id'   => $class->id,
+                'trainer_id' => $tid,
+                'role'       => 'lead',
+            ];
+        }
+
+        DB::table('class_trainers')->insert($rows);
+    }
+
+    private function getTrainerOptions()
+    {
+        return DB::table('trainers')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
     }
 }

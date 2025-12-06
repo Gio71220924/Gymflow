@@ -14,6 +14,11 @@ Route::group(['middleware' => ['auth']], function () {
     // Classes (rename method agar tidak bentrok keyword)
     Route::get('/class', [PageController::class, 'classPage'])->name('class');
     Route::get('/class/searching', [PageController::class, 'searchclass'])->name('search-class');
+    Route::get('/class/create', [PageController::class, 'createClassForm'])->name('class.create');
+    Route::post('/class', [PageController::class, 'storeClass'])->name('class.store');
+    Route::get('/class/{id}/edit', [PageController::class, 'editClassForm'])->name('class.edit');
+    Route::put('/class/{id}', [PageController::class, 'updateClass'])->name('class.update');
+    Route::delete('/class/{id}', [PageController::class, 'deleteClass'])->name('class.destroy');
 
 
     // Billing
