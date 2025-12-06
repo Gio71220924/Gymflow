@@ -148,7 +148,21 @@ class PageController extends Controller
     // Ganti nama method ini dari "class" -> "classPage"
     public function classPage()
     {
-        return view('class', ['key' => 'class']);
+        $classes = DB::table('gym_classes as gc')
+            ->select('gc.*')
+            ->selectSub(function ($query) {
+                $query->from('class_trainers as ct')
+                    ->join('trainers as t', 't.id', '=', 'ct.trainer_id')
+                    ->whereColumn('ct.class_id', 'gc.id')
+                    ->selectRaw("GROUP_CONCAT(t.name ORDER BY ct.role SEPARATOR ', ')");
+            }, 'trainer_names')
+            ->orderBy('gc.start_at')
+            ->get();
+
+        return view('class', [
+            'key'     => 'class',
+            'classes' => $classes,
+        ]);
     }
 
     /* ======================== BILLING ======================== */

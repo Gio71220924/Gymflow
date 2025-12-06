@@ -2,11 +2,8 @@
 @section('title', 'Class Management')
 @section('page_heading', 'Class Management')
 @section('card_title', 'Class Schedule')
-
 @section('content')
-  <div class="alert alert-info mb-4">
-    Jadwal kelas belum terhubung ke database. Tambahkan data nanti atau integrasikan dengan tabel class_schedules/class_bookings jika sudah siap.
-  </div>
+
 
   <table class="table table-striped table-bordered w-100" data-datatable>
     <thead class="thead-light">
@@ -20,22 +17,34 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>HIIT Express</td>
-        <td>Coach Dimas</td>
-        <td>{{ date('Y-m-d') }}</td>
-        <td>18:00 - 19:00</td>
-        <td>20</td>
-        <td><span class="badge badge-primary">Draft</span></td>
-      </tr>
-      <tr>
-        <td>Yoga Sunrise</td>
-        <td>Coach Rani</td>
-        <td>{{ date('Y-m-d', strtotime('+1 day')) }}</td>
-        <td>07:00 - 08:00</td>
-        <td>15</td>
-        <td><span class="badge badge-success">Terjadwal</span></td>
-      </tr>
+      @forelse($classes ?? [] as $class)
+        @php
+          $start = \Carbon\Carbon::parse($class->start_at);
+          $end = \Carbon\Carbon::parse($class->end_at);
+          $statusClass = [
+            'Scheduled' => 'primary',
+            'Done'      => 'success',
+            'Cancelled' => 'danger',
+          ][$class->status] ?? 'secondary';
+        @endphp
+        <tr>
+          <td>
+            <div class="font-weight-bold">{{ $class->title }}</div>
+            @if(!empty($class->location))
+              <div class="text-muted small">{{ $class->location }}</div>
+            @endif
+          </td>
+          <td>{{ $class->trainer_names ?? 'Belum ada instruktur' }}</td>
+          <td>{{ $start->format('Y-m-d') }}</td>
+          <td>{{ $start->format('H:i') }} - {{ $end->format('H:i') }}</td>
+          <td>{{ $class->capacity }}</td>
+          <td><span class="badge badge-{{ $statusClass }}">{{ $class->status }}</span></td>
+        </tr>
+      @empty
+        <tr>
+          <td colspan="6" class="text-center text-muted">Belum ada jadwal kelas.</td>
+        </tr>
+      @endforelse
     </tbody>
   </table>
 @endsection
