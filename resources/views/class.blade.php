@@ -73,10 +73,9 @@
         </table>
       </div>
 
-      {{-- Tampilkan pagination kalau $classes adalah paginator --}}
+      {{-- Pagination --}}
       @if(isset($classes) && method_exists($classes, 'links'))
         <div class="mt-3">
-          {{-- Pertahankan keyword saat paging --}}
           {{ $classes->appends(['q' => request('q')])->links() }}
         </div>
       @endif
