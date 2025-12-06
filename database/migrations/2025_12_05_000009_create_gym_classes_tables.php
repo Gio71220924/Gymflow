@@ -18,7 +18,7 @@ class CreateGymClassesTables extends Migration
             $table->dateTime('start_at');
             $table->dateTime('end_at');
             $table->string('type')->nullable();
-            $table->enum('status', ['scheduled', 'cancelled', 'done'])->default('scheduled');
+            $table->enum('status', ['Scheduled', 'Cancelled', 'Done'])->default('Scheduled');
             $table->timestamps();
 
             $table->index(['start_at', 'status']);
