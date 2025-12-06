@@ -167,37 +167,47 @@ class PageController extends Controller
 
     public function searchclass(Request $request)
     {
-        $q = $request->input('q');
+        $q       = $request->input('q');
+        $perPage = (int) $request->input('per_page', 10); // default 10
+        if (! in_array($perPage, [10, 20, 50], true)) {
+            $perPage = 10; // guard
+        }
 
-        $classes = DB::table('gym_classes as gc')
-            ->select('gc.*')
-            ->selectSub(function ($query) {
-                $query->from('class_trainers as ct')
-                    ->join('trainers as t', 't.id', '=', 'ct.trainer_id')
-                    ->whereColumn('ct.class_id', 'gc.id')
-                    ->selectRaw("GROUP_CONCAT(t.name ORDER BY ct.role SEPARATOR ', ')");
-            }, 'trainer_names')
-            ->when($q, function ($query, $q) {
-                $query->where(function ($sub) use ($q) {
-                    $sub->where('gc.title', 'like', '%' . $q . '%')
-                        ->orWhereRaw("EXISTS (
-                            SELECT 1 FROM class_trainers AS ct
-                            JOIN trainers AS t ON t.id = ct.trainer_id
-                            WHERE ct.class_id = gc.id AND t.name LIKE ?
-                        )", ['%' . $q . '%'])
-                        ->orWhere('gc.location', 'like', '%' . $q . '%')
-                        ->orWhere('gc.status', 'like', '%' . $q . '%');
-                });
-            })
-            ->orderBy('gc.start_at')
-            ->get();
-
-        return view('class', [
-            'key'     => 'class',
-            'classes' => $classes,
-            'searchQuery' => $q,
+    $classes = DB::table('gym_classes as gc')
+        ->select('gc.*')
+        ->selectSub(function ($query) {
+            $query->from('class_trainers as ct')
+                ->join('trainers as t', 't.id', '=', 'ct.trainer_id')
+                ->whereColumn('ct.class_id', 'gc.id')
+                ->selectRaw("GROUP_CONCAT(t.name ORDER BY ct.role SEPARATOR ', ')");
+        }, 'trainer_names')
+        ->when($q, function ($query, $q) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('gc.title', 'like', '%' . $q . '%')
+                    ->orWhereRaw("EXISTS (
+                        SELECT 1 FROM class_trainers AS ct
+                        JOIN trainers AS t ON t.id = ct.trainer_id
+                        WHERE ct.class_id = gc.id AND t.name LIKE ?
+                    )", ['%' . $q . '%'])
+                    ->orWhere('gc.location', 'like', '%' . $q . '%')
+                    ->orWhere('gc.status', 'like', '%' . $q . '%');
+            });
+        })
+        ->orderBy('gc.start_at')
+        ->paginate($perPage)
+        ->appends([
+            'q'        => $q,
+            'per_page' => $perPage,
         ]);
-    }
+
+    return view('class', [
+        'key'         => 'class',
+        'classes'     => $classes,
+        'searchQuery' => $q,
+        'perPage'     => $perPage,
+    ]);
+}
+
 
     /* ======================== BILLING ======================== */
 
