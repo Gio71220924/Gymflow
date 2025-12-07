@@ -24,4 +24,9 @@ class GymClass extends Model
         'start_at' => 'datetime',
         'end_at'   => 'datetime',
     ];
+
+    public function bookings()
+    {
+        return $this->hasMany(ClassBooking::class, 'class_id');
+    }
 }
