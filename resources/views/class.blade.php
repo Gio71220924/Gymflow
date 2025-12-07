@@ -75,9 +75,7 @@
               <th>Waktu</th>
               <th>Kapasitas</th>
               <th>Status</th>
-              @if($isAdmin ?? false)
-                <th>Aksi</th>
-              @endif
+              <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -85,6 +83,11 @@
               @php
                 $start = \Carbon\Carbon::parse($class->start_at);
                 $end   = \Carbon\Carbon::parse($class->end_at);
+                $bookedCount = (int) ($class->booked_count ?? 0);
+                $isFull = $bookedCount >= ($class->capacity ?? 0);
+                $userBookingStatus = $class->user_booking_status ?? null;
+                $classParticipants = ($participants ?? collect())->get($class->id, collect());
+                $canJoin = ($class->status === 'Scheduled') && !$isFull;
                 $statusClass = [
                   'Scheduled' => 'primary',
                   'Done'      => 'success',
@@ -101,30 +104,77 @@
                 <td>{{ $class->trainer_names ?? 'Belum ada instruktur' }}</td>
                 <td>{{ $start->format('Y-m-d') }}</td>
                 <td>{{ $start->format('H:i') }} - {{ $end->format('H:i') }}</td>
-                <td>{{ $class->capacity }}</td>
+                <td>
+                  <div class="font-weight-bold">{{ $bookedCount }} / {{ $class->capacity }}</div>
+                  <div class="text-muted small">Tersisa {{ max(($class->capacity ?? 0) - $bookedCount, 0) }} slot</div>
+                </td>
                 <td>
                   <span class="badge badge-{{ $statusClass }}">{{ $class->status }}</span>
                 </td>
-                @if($isAdmin ?? false)
                 <td>
-                  <div class="d-flex align-items-center" style="gap:8px;">
-                    <a class="btn btn-sm btn-outline-primary" href="{{ route('class.edit', $class->id) }}">
-                      <i class="bi bi-pencil"></i>
-                    </a>
-                    <form action="{{ route('class.destroy', $class->id) }}" method="POST" onsubmit="return confirm('Hapus kelas ini?');">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </form>
-                  </div>
+                  @if($isAdmin ?? false)
+                    <div class="d-flex align-items-center flex-wrap" style="gap:8px;">
+                      <a class="btn btn-sm btn-outline-primary" href="{{ route('class.edit', $class->id) }}">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <form action="{{ route('class.destroy', $class->id) }}" method="POST" onsubmit="return confirm('Hapus kelas ini?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                    </div>
+                    <div class="border rounded p-2 mt-2">
+                      <div class="small font-weight-bold mb-1">Peserta ({{ $classParticipants->count() }})</div>
+                      @forelse($classParticipants as $participant)
+                        <div class="d-flex align-items-center justify-content-between small py-1 border-top">
+                          <span>
+                            {{ $participant->nama_member }}
+                            <span class="badge badge-light text-muted">{{ ucfirst(str_replace('_', ' ', $participant->status)) }}</span>
+                          </span>
+                          <form action="{{ route('class.kick', [$class->id, $participant->booking_id]) }}" method="POST" onsubmit="return confirm('Kick peserta ini?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">Kick</button>
+                          </form>
+                        </div>
+                      @empty
+                        <div class="text-muted small">Belum ada peserta.</div>
+                      @endforelse
+                    </div>
+                  @else
+                    @if($userBookingStatus && $userBookingStatus !== 'cancelled')
+                      <div class="d-flex align-items-center" style="gap:10px;">
+                        <span class="badge badge-success">Sudah bergabung</span>
+                        <form action="{{ route('class.cancel', $class->id) }}" method="POST">
+                          @csrf
+                          <button type="submit" class="btn btn-sm btn-outline-danger">Batalkan</button>
+                        </form>
+                      </div>
+                    @else
+                      <form action="{{ route('class.join', $class->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-primary" {{ $canJoin ? '' : 'disabled' }}>
+                          @if(!$canJoin)
+                            {{ $isFull ? 'Kelas Penuh' : 'Tidak Tersedia' }}
+                          @else
+                            Gabung Kelas
+                          @endif
+                        </button>
+                        @if($isFull)
+                          <div class="text-muted small mt-1">Slot penuh, pilih jadwal lain.</div>
+                        @elseif($class->status !== 'Scheduled')
+                          <div class="text-muted small mt-1">Kelas tidak dapat dibooking.</div>
+                        @endif
+                      </form>
+                    @endif
+                  @endif
                 </td>
-                @endif
               </tr>
             @empty
               <tr>
-                <td colspan="{{ ($isAdmin ?? false) ? 7 : 6 }}" class="text-center text-muted">Belum ada jadwal kelas.</td>
+                <td colspan="7" class="text-center text-muted">Belum ada jadwal kelas.</td>
               </tr>
             @endforelse
           </tbody>

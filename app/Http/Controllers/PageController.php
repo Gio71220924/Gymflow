@@ -11,6 +11,7 @@ use App\Invoice;
 use App\Payment;
 use App\AppSetting;
 use App\GymClass;
+use App\ClassBooking;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -158,8 +159,31 @@ class PageController extends Controller
             $perPage = 10;
         }
 
+        $user     = $request->user();
+        $memberId = optional(optional($user)->memberGym)->id;
+        $isAdmin  = $user && $user->role === User::ROLE_SUPER_ADMIN;
+        $isUser   = $user && $user->role === User::ROLE_USER;
+
         $classes = DB::table('gym_classes as gc')
             ->select('gc.*')
+            ->selectSub(function ($query) {
+                $query->from('class_bookings as cb')
+                    ->whereColumn('cb.class_id', 'gc.id')
+                    ->whereIn('cb.status', ['booked', 'attended', 'no_show'])
+                    ->selectRaw('COUNT(*)');
+            }, 'booked_count')
+            ->when($memberId, function ($query) use ($memberId) {
+                $query->selectSub(function ($sub) use ($memberId) {
+                    $sub->from('class_bookings as cb')
+                        ->whereColumn('cb.class_id', 'gc.id')
+                        ->where('cb.member_id', $memberId)
+                        ->select('cb.status')
+                        ->latest('cb.id')
+                        ->limit(1);
+                }, 'user_booking_status');
+            }, function ($query) {
+                $query->selectRaw('NULL as user_booking_status');
+            })
             ->selectSub(function ($query) {
                 $query->from('class_trainers as ct')
                     ->join('trainers as t', 't.id', '=', 'ct.trainer_id')
@@ -185,7 +209,17 @@ class PageController extends Controller
                 'per_page' => $perPage,
             ]);
 
-        $isAdmin = $request->user() && $request->user()->role === User::ROLE_SUPER_ADMIN;
+        $participants = collect();
+        if ($isAdmin) {
+            $classIds = $classes->pluck('id');
+            $participants = DB::table('class_bookings as cb')
+                ->join('member_gym as m', 'm.id', '=', 'cb.member_id')
+                ->whereIn('cb.class_id', $classIds)
+                ->select('cb.id as booking_id', 'cb.class_id', 'cb.status', 'm.nama_member', 'm.id as member_id')
+                ->orderBy('m.nama_member')
+                ->get()
+                ->groupBy('class_id');
+        }
 
         return view('class', [
             'key'         => 'class',
@@ -193,6 +227,9 @@ class PageController extends Controller
             'searchQuery' => $q,
             'perPage'     => $perPage,
             'isAdmin'     => $isAdmin,
+            'isUser'      => $isUser,
+            'participants'=> $participants,
+            'memberId'    => $memberId,
         ]);
     }
 
@@ -268,6 +305,99 @@ class PageController extends Controller
         $class->delete();
 
         return redirect()->route('class')->with('success', 'Kelas berhasil dihapus.');
+    }
+
+    /* ======================== CLASS BOOKINGS ======================== */
+
+    public function joinClass(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user || $user->role !== User::ROLE_USER) {
+            abort(403, 'Hanya member yang dapat bergabung ke kelas.');
+        }
+
+        $member = $user->memberGym;
+        if (!$member) {
+            return back()->with('error', 'Data member tidak ditemukan.');
+        }
+
+        $class = GymClass::findOrFail($id);
+        if ($class->status !== 'Scheduled') {
+            return back()->with('error', 'Kelas ini tidak tersedia untuk booking.');
+        }
+
+        $activeCount = ClassBooking::where('class_id', $class->id)
+            ->whereIn('status', ['booked', 'attended', 'no_show'])
+            ->count();
+
+        if ($activeCount >= $class->capacity) {
+            return back()->with('error', 'Kapasitas kelas sudah penuh.');
+        }
+
+        $booking = ClassBooking::where('class_id', $class->id)
+            ->where('member_id', $member->id)
+            ->first();
+
+        if ($booking) {
+            if (in_array($booking->status, ['booked', 'attended', 'no_show'], true)) {
+                return back()->with('success', 'Kamu sudah bergabung di kelas ini.');
+            }
+            $booking->status = 'booked';
+            $booking->checked_in_at = null;
+            $booking->save();
+        } else {
+            ClassBooking::create([
+                'class_id' => $class->id,
+                'member_id' => $member->id,
+                'status'   => 'booked',
+            ]);
+        }
+
+        return back()->with('success', 'Berhasil bergabung ke kelas.');
+    }
+
+    public function cancelClassBooking(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user || $user->role !== User::ROLE_USER) {
+            abort(403, 'Hanya member yang dapat membatalkan booking.');
+        }
+
+        $member = $user->memberGym;
+        if (!$member) {
+            return back()->with('error', 'Data member tidak ditemukan.');
+        }
+
+        $booking = ClassBooking::where('class_id', $id)
+            ->where('member_id', $member->id)
+            ->first();
+
+        if (!$booking) {
+            return back()->with('error', 'Kamu belum bergabung pada kelas ini.');
+        }
+
+        if ($booking->status === 'cancelled') {
+            return back()->with('success', 'Booking sudah dibatalkan.');
+        }
+
+        $booking->status = 'cancelled';
+        $booking->checked_in_at = null;
+        $booking->save();
+
+        return back()->with('success', 'Booking kelas berhasil dibatalkan.');
+    }
+
+    public function kickClassMember(Request $request, $classId, $bookingId)
+    {
+        $this->ensureSuperAdmin($request);
+
+        $booking = ClassBooking::where('id', $bookingId)
+            ->where('class_id', $classId)
+            ->firstOrFail();
+
+        $booking->delete();
+
+        return back()->with('success', 'Peserta berhasil dikeluarkan dari kelas.');
     }
 
 
