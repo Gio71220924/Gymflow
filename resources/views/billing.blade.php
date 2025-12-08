@@ -67,6 +67,45 @@
     </div>
   </div>
 
+  @if(($isAdmin ?? false) && !empty($monthlyRevenue))
+  @php $revenue = $monthlyRevenue; @endphp
+  <div class="row mb-4 align-items-stretch">
+    <div class="col-lg-4 mb-3">
+      <div class="p-4 border rounded h-100" style="background:#fff;">
+        <div class="text-muted text-uppercase small mb-1">Pendapatan 12 bulan</div>
+        <div class="h3 mb-1">Rp {{ number_format($revenue['total'] ?? 0, 0, ',', '.') }}</div>
+        <div class="text-muted small">Total pembayaran billing berstatus berhasil dibayar.</div>
+        <hr>
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted small">Bulan terakhir</div>
+            <div class="font-weight-bold mb-0">{{ $revenue['latest_label'] ?? '-' }}</div>
+            <div class="text-muted small">Rp {{ number_format($revenue['latest_amount'] ?? 0, 0, ',', '.') }}</div>
+          </div>
+          <div class="text-right">
+            <div class="text-muted small">Invoice lunas</div>
+            <div class="h5 mb-0">{{ $revenue['latest_invoice_count'] ?? 0 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-8 mb-3">
+      <div class="p-4 border rounded h-100" style="background:#fff;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <div class="text-muted text-uppercase small">Pendapatan per bulan</div>
+            <div class="font-weight-bold">Billing (pembayaran berhasil)</div>
+          </div>
+          <span class="badge badge-pill badge-light border">12 bulan terakhir</span>
+        </div>
+        <div style="height: 220px;">
+          <canvas id="monthlyRevenueChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  @endif
+
   <table class="table table-striped table-bordered w-100" id="billing-table" data-datatable>
     <thead class="thead-light">
       <tr>
@@ -183,3 +222,62 @@
     </tbody>
   </table>
 @endsection
+
+@if(($isAdmin ?? false) && !empty($monthlyRevenue))
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  (function() {
+    const revenue = @json($monthlyRevenue);
+    if (!revenue) return;
+    const labels = Array.isArray(revenue.labels) && revenue.labels.length ? revenue.labels : ['-'];
+    const amounts = Array.isArray(revenue.amounts) && revenue.amounts.length ? revenue.amounts : [0];
+    const ctx = document.getElementById('monthlyRevenueChart');
+    if (!ctx) return;
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Total dibayar',
+          data: amounts,
+          backgroundColor: 'rgba(252, 119, 83, 0.18)',
+          borderColor: '#fc7753',
+          borderWidth: 2,
+          borderRadius: 8,
+          maxBarThickness: 42,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const value = Number(context.raw || 0);
+                return 'Rp ' + value.toLocaleString('id-ID');
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) { return 'Rp ' + Number(value).toLocaleString('id-ID'); }
+            },
+            grid: { color: 'rgba(31,19,12,0.08)' }
+          }
+        }
+      }
+    });
+  })();
+</script>
+@endsection
+@endif

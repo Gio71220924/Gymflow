@@ -473,6 +473,7 @@ class PageController extends Controller
     {
         $user = auth()->user();
         $isUser = $user && $user->role === User::ROLE_USER;
+        $isAdmin = $user && $user->role === User::ROLE_SUPER_ADMIN;
 
         $query = Invoice::with([
             'memberMembership.member',
@@ -508,11 +509,53 @@ class PageController extends Controller
             'total_amount'  => $invoices->sum('total_tagihan'),
         ];
 
+        $monthlyRevenue = null;
+        if ($isAdmin) {
+            $startMonth = Carbon::now()->subMonths(11)->startOfMonth();
+            $revenueRows = Payment::select(
+                    DB::raw('DATE_FORMAT(paid_at, "%Y-%m") as ym'),
+                    DB::raw('SUM(amount) as total_amount'),
+                    DB::raw('COUNT(DISTINCT invoice_id) as invoice_count'),
+                    DB::raw('COUNT(*) as payment_count')
+                )
+                ->where('status', 'berhasil')
+                ->whereNotNull('paid_at')
+                ->where('paid_at', '>=', $startMonth)
+                ->groupBy('ym')
+                ->orderBy('ym')
+                ->get();
+
+            $labels         = [];
+            $amounts        = [];
+            $invoiceCounts  = [];
+
+            foreach ($revenueRows as $row) {
+                try {
+                    $labels[] = Carbon::createFromFormat('Y-m', $row->ym)->format('M Y');
+                } catch (\Throwable $e) {
+                    $labels[] = $row->ym;
+                }
+                $amounts[]       = (float) $row->total_amount;
+                $invoiceCounts[] = (int) $row->invoice_count;
+            }
+
+            $monthlyRevenue = [
+                'labels'                => $labels,
+                'amounts'               => $amounts,
+                'invoice_counts'        => $invoiceCounts,
+                'total'                 => array_sum($amounts),
+                'latest_label'          => count($labels) ? $labels[count($labels) - 1] : null,
+                'latest_amount'         => count($amounts) ? $amounts[count($amounts) - 1] : 0,
+                'latest_invoice_count'  => count($invoiceCounts) ? $invoiceCounts[count($invoiceCounts) - 1] : 0,
+            ];
+        }
+
         return view('billing', [
             'key'      => 'billing',
             'invoices' => $invoices,
             'summary'  => $summary,
-            'isAdmin'  => $user && $user->role === User::ROLE_SUPER_ADMIN,
+            'isAdmin'  => $isAdmin,
+            'monthlyRevenue' => $monthlyRevenue,
         ]);
     }
 
