@@ -5,10 +5,11 @@
   use Illuminate\Contracts\Auth\MustVerifyEmail;                                                                                                                                  
   use Illuminate\Foundation\Auth\User as Authenticatable;                                                                                                                         
   use Illuminate\Notifications\Notifiable;                                                                                                                                        
+  use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;                                                                                                                    
                                                                                                                                                                                   
-  class User extends Authenticatable                                                                                                                                              
+  class User extends Authenticatable implements MustVerifyEmail                                                                                                                   
   {                                                                                                                                                                               
-      use Notifiable;                                                                                                                                                             
+      use Notifiable, MustVerifyEmailTrait;                                                                                                                                       
                                                                                                                                                                                   
       const ROLE_USER = 'user';                                                                                                                                                   
       const ROLE_SUPER_ADMIN = 'super_admin';                                                                                                                                     
