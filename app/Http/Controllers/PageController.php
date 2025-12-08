@@ -45,6 +45,8 @@ class PageController extends Controller
             $latestInvoice = null;
             $daysLeft = null;
             $invoiceDueIn = null;
+            $today = Carbon::today();
+            $memberId = optional($member)->id;
 
             if ($member) {
                 $membership = $member->memberMemberships()
@@ -65,6 +67,30 @@ class PageController extends Controller
                 }
             }
 
+            $todayClasses = DB::table('gym_classes as gc')
+                ->select('gc.id', 'gc.title', 'gc.location', 'gc.start_at', 'gc.end_at', 'gc.capacity', 'gc.status')
+                ->whereDate('gc.start_at', $today)
+                ->selectSub(function ($query) {
+                    $query->from('class_bookings as cb')
+                        ->whereColumn('cb.class_id', 'gc.id')
+                        ->whereIn('cb.status', ['booked', 'attended', 'no_show'])
+                        ->selectRaw('COUNT(*)');
+                }, 'booked_count')
+                ->when($memberId, function ($query) use ($memberId) {
+                    $query->selectSub(function ($sub) use ($memberId) {
+                        $sub->from('class_bookings as cb')
+                            ->whereColumn('cb.class_id', 'gc.id')
+                            ->where('cb.member_id', $memberId)
+                            ->select('cb.status')
+                            ->latest('cb.id')
+                            ->limit(1);
+                    }, 'user_booking_status');
+                }, function ($query) {
+                    $query->selectRaw('NULL as user_booking_status');
+                })
+                ->orderBy('gc.start_at')
+                ->get();
+
             return view('user-home', [
                 'key'           => 'user-home',
                 'member'        => $member,
@@ -72,6 +98,7 @@ class PageController extends Controller
                 'latestInvoice' => $latestInvoice,
                 'daysLeft'      => $daysLeft,
                 'invoiceDueIn'  => $invoiceDueIn,
+                'todayClasses'  => $todayClasses,
             ]);
         }
 

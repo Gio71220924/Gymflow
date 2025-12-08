@@ -104,11 +104,7 @@
   $heroChipText = $isActiveMembership ? 'Membership aktif' : 'Membership tidak aktif';
   $heroChipIcon = $isActiveMembership ? 'bi-shield-check' : 'bi-exclamation-triangle';
   $heroChipClass = $isActiveMembership ? '' : ' inactive';
-  $schedulePreview = [
-    ['time' => '07.00', 'title' => 'HIIT Burn', 'status' => 'Penuh', 'variant' => 'success', 'slots' => '12/12'],
-    ['time' => '12.30', 'title' => 'Strength Circuit', 'status' => 'Berlangsung', 'variant' => 'info', 'slots' => '8/14'],
-    ['time' => '19.00', 'title' => 'Mobility Flow', 'status' => 'Tersedia', 'variant' => 'default', 'slots' => '5 slot lagi'],
-  ];
+  $todayClasses = collect($todayClasses ?? []);
 @endphp
 
 
@@ -192,20 +188,49 @@
     <div class="stat-card h-100">
       <div class="stat-meta">Jadwal hari ini</div>
       <ul class="schedule-list">
-        @foreach($schedulePreview as $slot)
+        @forelse($todayClasses as $class)
+          @php
+            $start = Carbon::parse($class->start_at);
+            $end   = Carbon::parse($class->end_at);
+            $booked = (int) ($class->booked_count ?? 0);
+            $capacity = (int) ($class->capacity ?? 0);
+            $slotsLeft = max($capacity - $booked, 0);
+            $isFull = $capacity > 0 && $booked >= $capacity;
+            $statusKey = strtolower(trim($class->status ?? ''));
+            $statusBadge = $statusKey === 'cancelled' ? 'danger' : ($statusKey === 'done' ? 'success' : 'info');
+            $statusLabel = $class->status ?? 'Scheduled';
+            $userStatus = $class->user_booking_status ?? null;
+          @endphp
           <li class="schedule-item">
             <div class="d-flex align-items-center" style="gap:12px;">
-              <span class="time">{{ $slot['time'] }}</span>
+              <span class="time">{{ $start->format('H:i') }}</span>
               <div>
-                <div class="title">{{ $slot['title'] }}</div>
-                <div class="stat-meta">{{ $slot['slots'] }}</div>
+                <div class="title">{{ $class->title }}</div>
+                <div class="stat-meta">
+                  {{ $class->location ?? 'Studio' }} ·
+                  @if($capacity > 0)
+                    {{ $booked }} / {{ $capacity }} slot (sisa {{ $slotsLeft }})
+                  @else
+                    {{ $booked }} peserta
+                  @endif
+                </div>
               </div>
             </div>
             <div class="meta">
-              <span class="badge-soft {{ $slot['variant'] === 'success' ? 'success' : ($slot['variant'] === 'info' ? 'info' : '') }}">{{ $slot['status'] }}</span>
+              <span class="badge-soft {{ $statusBadge }}">{{ $statusLabel }}</span>
+              @if($userStatus && $userStatus !== 'cancelled')
+                <span class="badge-soft success">Saya terdaftar</span>
+              @elseif($isFull)
+                <span class="badge-soft danger">Penuh</span>
+              @endif
             </div>
           </li>
-        @endforeach
+        @empty
+          <li class="schedule-item">
+            <div class="title">Belum ada jadwal kelas hari ini.</div>
+            <div class="stat-meta">Cek jadwal lain di halaman kelas.</div>
+          </li>
+        @endforelse
       </ul>
     </div>
   </div>
