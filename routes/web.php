@@ -5,9 +5,11 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthentikasiController;
 use App\Http\Controllers\PasswordResetController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request;
 
 
-Route::group(['middleware' => ['auth']], function () {
+Route::group(['middleware' => ['auth','verified']], function () {
 
     // Dashboard
     Route::get('/home', [PageController::class, 'home'])->name('home');
@@ -71,4 +73,21 @@ Route::group(['middleware' => ['guest']], function () {
     Route::get('/password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
     Route::post('/password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
     Route::get('/', [PageController::class, 'landing'])->name('landingpage');
+});
+
+// Email Verification routes (auth but not necessarily verified)
+Route::group(['middleware' => ['auth']], function () {
+    Route::get('/email/verify', function () {
+        return view('auth.verify');
+    })->name('verification.notice');
+
+    Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+        $request->fulfill();
+        return redirect('/home');
+    })->middleware(['signed'])->name('verification.verify');
+
+    Route::post('/email/verification-notification', function (Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+        return back()->with('status', 'Link verifikasi dikirim!');
+    })->middleware(['throttle:6,1'])->name('verification.send');
 });
