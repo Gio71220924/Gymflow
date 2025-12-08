@@ -5,6 +5,7 @@
   $tagline = $appSettings['branding_tagline'] ?? 'Kelola gym, jadwal, dan pembayaran dengan satu dashboard.';
   $basicPrice = isset($appSettings['billing_basic_price']) ? number_format($appSettings['billing_basic_price'], 0, ',', '.') : '150.000';
   $premiumPrice = isset($appSettings['billing_premium_price']) ? number_format($appSettings['billing_premium_price'], 0, ',', '.') : '300.000';
+  $brandLogo = $brandLogo ?? null;
   $liveClasses = collect($todayClasses ?? []);
 @endphp
 <!doctype html>
@@ -93,7 +94,22 @@
       font-weight: 700;
       font-size: 18px;
       box-shadow: 0 12px 25px rgba(252,119,83,0.35);
+      overflow: hidden;
     }
+    .brand .mark.mark-img {
+      width: auto;
+      min-width: 42px;
+      height: 36px;
+      padding: 0;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .brand .mark img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .brand .mark.mark-img img { width: auto; height: 100%; max-width: 140px; }
     .brand-name { font-weight: 700; font-size: 1.05rem; }
     .brand-tagline { font-size: 0.85rem; color: var(--muted); margin-top: -2px; }
     .nav-links { display: flex; align-items: center; gap: 16px; font-size: 0.95rem; flex-wrap: wrap; }
@@ -517,7 +533,13 @@
   <div class="page">
     <header class="topbar" id="topbar">
       <div class="brand">
-        <div class="mark">{{ strtoupper(substr($brandName, 0, 1)) }}</div>
+        <div class="mark{{ $brandLogo ? ' mark-img' : '' }}">
+          @if($brandLogo)
+            <img src="{{ $brandLogo }}" alt="{{ $brandName }} logo">
+          @else
+            {{ strtoupper(substr($brandName, 0, 1)) }}
+          @endif
+        </div>
         <div>
           <div class="brand-name">{{ $brandName }}</div>
           <div class="brand-tagline">Latihan nyaman, progres nyata</div>

@@ -57,9 +57,15 @@ class PageController extends Controller
                 ->get();
         }
 
+        $brandingFiles = Storage::disk('public')->files('branding');
+        $brandLogo = !empty($brandingFiles)
+            ? Storage::url($brandingFiles[0])
+            : null;
+
         return view('landingpage', [
             'key'          => 'landingpage',
             'todayClasses' => $todayClasses,
+            'brandLogo'    => $brandLogo,
         ]);
     }
     
