@@ -30,8 +30,36 @@ class PageController extends Controller
 
     public function landing()
     {
+        $today = Carbon::today();
+
+        $baseQuery = DB::table('gym_classes as gc')
+            ->select('gc.id', 'gc.title', 'gc.location', 'gc.start_at', 'gc.end_at', 'gc.capacity', 'gc.status')
+            ->selectSub(function ($query) {
+                $query->from('class_bookings as cb')
+                    ->whereColumn('cb.class_id', 'gc.id')
+                    ->whereIn('cb.status', ['booked', 'attended', 'no_show'])
+                    ->selectRaw('COUNT(*)');
+            }, 'booked_count')
+            ->where(function ($query) {
+                $query->whereNull('gc.status')->orWhere('gc.status', '!=', 'Cancelled');
+            })
+            ->orderBy('gc.start_at');
+
+        $todayClasses = (clone $baseQuery)
+            ->whereDate('gc.start_at', $today)
+            ->limit(8)
+            ->get();
+
+        if ($todayClasses->isEmpty()) {
+            $todayClasses = (clone $baseQuery)
+                ->where('gc.start_at', '>=', $today->copy()->startOfDay())
+                ->limit(8)
+                ->get();
+        }
+
         return view('landingpage', [
-            'key' => 'landingpage',
+            'key'          => 'landingpage',
+            'todayClasses' => $todayClasses,
         ]);
     }
     

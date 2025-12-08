@@ -1,9 +1,11 @@
 @php
+  use Carbon\Carbon;
   $brandName = $appSettings['branding_name'] ?? 'GymFlow';
   $brandColor = $appSettings['branding_color'] ?? '#FC7753';
   $tagline = $appSettings['branding_tagline'] ?? 'Kelola gym, jadwal, dan pembayaran dengan satu dashboard.';
   $basicPrice = isset($appSettings['billing_basic_price']) ? number_format($appSettings['billing_basic_price'], 0, ',', '.') : '150.000';
   $premiumPrice = isset($appSettings['billing_premium_price']) ? number_format($appSettings['billing_premium_price'], 0, ',', '.') : '300.000';
+  $liveClasses = collect($todayClasses ?? []);
 @endphp
 <!doctype html>
 <html lang="id">
@@ -148,6 +150,14 @@
       background: rgba(15,23,42,0.05);
       border-color: rgba(15,23,42,0.07);
     }
+    .btn.join-btn {
+      padding: 10px 14px;
+      background: #0f172a;
+      color: #fff;
+      border-color: #0f172a;
+    }
+    .btn.join-btn:hover { background: var(--brand); color: #0f172a; box-shadow: 0 12px 28px rgba(252,119,83,0.28); }
+    .btn.join-btn.full { width: 100%; justify-content: center; }
     .hero { padding: 70px 0 40px; }
     .hero-grid {
       display: grid;
@@ -184,7 +194,7 @@
     .schedule { display: grid; gap: 12px; }
     .schedule-row {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
       padding: 12px 14px;
@@ -196,7 +206,7 @@
     }
     .schedule-row .time { font-weight: 700; color: var(--ink); min-width: 50px; }
     .schedule-row .title { font-weight: 600; word-break: break-word; }
-    .schedule-row .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .schedule-row .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; text-align: right; }
     .badge {
       display: inline-flex;
       align-items: center;
@@ -209,6 +219,8 @@
     }
     .badge.success { background: rgba(40,199,111,0.16); color: #126f3f; }
     .badge.info { background: rgba(15,23,42,0.08); color: #0f172a; }
+    .badge.danger { background: rgba(239,68,68,0.14); color: #b42318; }
+    .badge.warning { background: rgba(252,201,52,0.18); color: #9a6400; }
     .muted { color: #7b8495; font-weight: 600; }
     .panel-stats { background: linear-gradient(145deg, #0f172a 0%, #111827 35%, #121c2d 100%); color: #e5ecf5; border: none; box-shadow: 0 25px 60px rgba(12,18,32,0.4); }
     .panel-stats .panel-title { color: #fff; }
@@ -543,41 +555,54 @@
               <div class="panel-head">
                 <div>
                   <div class="eyebrow">Jadwal hari ini</div>
-                  <div class="panel-title">Tinggal pilih slot</div>
+                  <div class="panel-title">{{ $liveClasses->isEmpty() ? 'Jadwal terbaru' : 'Tinggal pilih slot' }}</div>
                 </div>
                 <span class="pill mini success">Live</span>
               </div>
               <div class="schedule">
-                <div class="schedule-row">
-                  <div>
-                    <div class="time">07.00</div>
-                    <div class="title">HIIT Burn</div>
+                @forelse($liveClasses->take(4) as $class)
+                  @php
+                    $start = Carbon::parse($class->start_at);
+                    $end   = $class->end_at ? Carbon::parse($class->end_at) : null;
+                    $booked = (int) ($class->booked_count ?? 0);
+                    $capacity = max(0, (int) ($class->capacity ?? 0));
+                    $slotsLeft = max($capacity - $booked, 0);
+                    $statusKey = strtolower($class->status ?? '');
+                    $isCancelled = $statusKey === 'cancelled';
+                    $isDone = $statusKey === 'done';
+                    $isLive = !$isCancelled && !$isDone && $end && $start->isPast() && $end->isFuture();
+                    $isFull = $capacity > 0 && $booked >= $capacity;
+                    $badgeClass = $isCancelled ? 'danger' : ($isLive ? 'info' : ($isFull ? 'warning' : 'success'));
+                    $badgeLabel = $isCancelled ? 'Dibatalkan' : ($isLive ? 'Berlangsung' : ($isDone ? 'Selesai' : ($isFull ? 'Penuh' : 'Tersedia')));
+                  @endphp
+                  <div class="schedule-row">
+                    <div>
+                      <div class="time">{{ $start->format('H:i') }}</div>
+                      <div class="title">{{ $class->title }}</div>
+                      <div class="muted">{{ $class->location ?? 'Studio utama' }}</div>
+                    </div>
+                    <div class="meta">
+                      <span class="badge {{ $badgeClass }}">{{ $badgeLabel }}</span>
+                      @if($capacity > 0)
+                        <span class="muted">{{ $booked }} / {{ $capacity }} slot</span>
+                        @if(!$isFull && !$isCancelled && !$isDone)
+                          <span class="pill mini soft">Sisa {{ $slotsLeft }}</span>
+                        @endif
+                      @else
+                        <span class="muted">{{ $booked }} peserta</span>
+                      @endif
+                      <a class="btn join-btn" href="{{ route('login') }}">Bergabung</a>
+                    </div>
                   </div>
-                  <div class="meta">
-                    <span class="badge success">Terisi</span>
-                    <span class="muted">12/12</span>
+                @empty
+                  <div class="schedule-row">
+                    <div>
+                      <div class="title">Belum ada jadwal hari ini.</div>
+                      <div class="muted">Jadwal akan diperbarui otomatis begitu kelas baru dibuat.</div>
+                    </div>
+                    <a class="btn join-btn" href="{{ route('login') }}">Masuk</a>
                   </div>
-                </div>
-                <div class="schedule-row">
-                  <div>
-                    <div class="time">10.00</div>
-                    <div class="title">Strength Circuit</div>
-                  </div>
-                  <div class="meta">
-                    <span class="badge info">Berlangsung</span>
-                    <span class="muted">8/14</span>
-                  </div>
-                </div>
-                <div class="schedule-row">
-                  <div>
-                    <div class="time">18.30</div>
-                    <div class="title">Mobility Flow</div>
-                  </div>
-                  <div class="meta">
-                    <span class="badge">Tersedia</span>
-                    <span class="muted">5 slot lagi</span>
-                  </div>
-                </div>
+                @endforelse
               </div>
             </div>
 
@@ -683,42 +708,45 @@
             <p>Jadwal berganti setiap minggu. Pilih sesi pagi, siang, atau malam sesuai waktu kamu.</p>
           </div>
           <div class="class-grid">
-            <div class="class-card">
-              <div class="class-meta">
-                <span class="pill mini soft">Pagi</span>
-                <span class="class-cap"><i class="bi bi-people"></i>12 kursi</span>
+            @forelse($liveClasses as $class)
+              @php
+                $start = Carbon::parse($class->start_at);
+                $end   = $class->end_at ? Carbon::parse($class->end_at) : null;
+                $booked = (int) ($class->booked_count ?? 0);
+                $capacity = max(0, (int) ($class->capacity ?? 0));
+                $slotsLeft = max($capacity - $booked, 0);
+                $statusKey = strtolower($class->status ?? '');
+                $isFull = $capacity > 0 && $booked >= $capacity;
+                $statusLabel = $statusKey === 'cancelled' ? 'Dibatalkan' : ($statusKey === 'done' ? 'Selesai' : 'Terjadwal');
+              @endphp
+              <div class="class-card">
+                <div class="class-meta">
+                  <span class="pill mini soft">{{ $start->format('d M') }}</span>
+                  <span class="class-cap"><i class="bi bi-people"></i>{{ $capacity > 0 ? $capacity . ' kursi' : 'Tanpa batas' }}</span>
+                </div>
+                <h3>{{ $class->title }}</h3>
+                <p>{{ $class->location ?? 'Studio utama' }}</p>
+                <div class="class-meta">
+                  <span><i class="bi bi-clock"></i> {{ $start->format('H:i') }}{{ $end ? ' - ' . $end->format('H:i') : '' }}</span>
+                  <span><i class="bi bi-geo-alt"></i> {{ $class->location ?? 'Lokasi menyusul' }}</span>
+                </div>
+                <div class="class-meta">
+                  @if($capacity > 0)
+                    <span class="badge {{ $isFull ? 'danger' : 'success' }}">{{ $isFull ? 'Penuh' : 'Sisa ' . $slotsLeft . ' slot' }}</span>
+                  @else
+                    <span class="badge info">Slot fleksibel</span>
+                  @endif
+                  <span class="muted">{{ $booked }} terdaftar - {{ $statusLabel }}</span>
+                </div>
+                <a class="btn join-btn full" href="{{ route('login') }}">Bergabung</a>
               </div>
-              <h3>HIIT Burn</h3>
-              <p>Latihan intensitas tinggi 45 menit untuk membakar kalori maksimal.</p>
-              <div class="class-meta">
-                <span><i class="bi bi-clock"></i> 07.00</span>
-                <span><i class="bi bi-lightning-charge"></i> Level menengah</span>
+            @empty
+              <div class="class-card">
+                <h3>Belum ada jadwal aktif</h3>
+                <p>Jadwal akan muncul otomatis saat admin membuat kelas baru.</p>
+                <a class="btn join-btn full" href="{{ route('login') }}">Masuk untuk update</a>
               </div>
-            </div>
-            <div class="class-card">
-              <div class="class-meta">
-                <span class="pill mini soft">Siang</span>
-                <span class="class-cap"><i class="bi bi-people"></i>14 kursi</span>
-              </div>
-              <h3>Strength Circuit</h3>
-              <p>Bangun kekuatan dan stabilitas dengan kombinasi barbell dan bodyweight.</p>
-              <div class="class-meta">
-                <span><i class="bi bi-clock"></i> 12.30</span>
-                <span><i class="bi bi-graph-up"></i> Level fleksibel</span>
-              </div>
-            </div>
-            <div class="class-card">
-              <div class="class-meta">
-                <span class="pill mini soft">Malam</span>
-                <span class="class-cap"><i class="bi bi-people"></i>10 kursi</span>
-              </div>
-              <h3>Mobility Flow</h3>
-              <p>Recovery, perbaiki postur, dan tingkatkan fleksibilitas sebelum tidur.</p>
-              <div class="class-meta">
-                <span><i class="bi bi-clock"></i> 19.00</span>
-                <span><i class="bi bi-stars"></i> Cocok pemula</span>
-              </div>
-            </div>
+            @endforelse
           </div>
         </div>
       </section>
