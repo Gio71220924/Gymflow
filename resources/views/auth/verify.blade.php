@@ -67,20 +67,15 @@
 
     <p class="text-muted">Jika belum menerima email, klik tombol di bawah untuk mengirim ulang tautan verifikasi.</p>
 
-    <form class="d-inline" method="POST" action="{{ route('verification.send') }}">
+    <form class="mb-3" method="POST" action="{{ route('verification.send') }}">
       @csrf
       <button type="submit" class="btn btn-primary btn-block">Kirim ulang link verifikasi</button>
     </form>
 
-    <div class="text-center mt-3">
-      <a href="{{ route('logout') }}"
-         onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-        Logout
-      </a>
-      <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-        @csrf
-      </form>
-    </div>
+    <form method="POST" action="{{ route('logout') }}">
+      @csrf
+      <button type="submit" class="btn btn-outline-secondary btn-block">Batalkan &amp; keluar</button>
+    </form>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.bundle.min.js"

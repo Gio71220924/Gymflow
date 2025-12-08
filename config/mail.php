@@ -56,8 +56,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        'address' => env('MAIL_FROM_ADDRESS', 'sandbox@mtrgt.net'),
+        'name' => env('MAIL_FROM_NAME', 'Gymflow verification'),
     ],
 
     /*
@@ -72,6 +72,24 @@ return [
     */
 
     'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stream Options (TLS/SSL)
+    |--------------------------------------------------------------------------
+    |
+    | Untuk lingkungan lokal yang memakai sertifikat self-signed atau CA bundle
+    | bermasalah, Anda bisa mematikan verifikasi. Gunakan hanya di development.
+    |
+    */
+
+    'stream' => [
+        'ssl' => [
+            'allow_self_signed' => true,
+            'verify_peer'       => false,
+            'verify_peer_name'  => false,
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------

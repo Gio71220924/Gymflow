@@ -57,9 +57,6 @@ Route::group(['middleware' => ['auth','verified']], function () {
     // Change Password
     Route::get('/change-password', [UserController::class, 'changePasswordForm'])->name('change-password');
     Route::post('/change-password', [UserController::class, 'updatePassword'])->name('update-password');
-    
-    // Logout   
-    Route::post('/logout', [AuthentikasiController::class, 'logout'])->name('logout');
     });
 
 Route::group(['middleware' => ['guest']], function () {
@@ -75,8 +72,11 @@ Route::group(['middleware' => ['guest']], function () {
     Route::get('/', [PageController::class, 'landing'])->name('landingpage');
 });
 
-// Email Verification routes (auth but not necessarily verified)
+// Email Verification routes + logout (auth but not necessarily verified)
 Route::group(['middleware' => ['auth']], function () {
+    // Logout (harus bisa diakses meski belum terverifikasi)
+    Route::post('/logout', [AuthentikasiController::class, 'logout'])->name('logout');
+
     Route::get('/email/verify', function () {
         return view('auth.verify');
     })->name('verification.notice');
