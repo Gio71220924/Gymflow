@@ -83,11 +83,14 @@
               @php
                 $start = \Carbon\Carbon::parse($class->start_at);
                 $end   = \Carbon\Carbon::parse($class->end_at);
+                $startObj = \Carbon\Carbon::parse($class->start_at);
                 $bookedCount = (int) ($class->booked_count ?? 0);
                 $isFull = $bookedCount >= ($class->capacity ?? 0);
                 $userBookingStatus = $class->user_booking_status ?? null;
                 $classParticipants = ($participants ?? collect())->get($class->id, collect());
-                $canJoin = ($class->status === 'Scheduled') && !$isFull;
+                $normalizedStatus = strtolower(trim((string) $class->status));
+                $isPast = $startObj->isPast();
+                $canJoin = !in_array($normalizedStatus, ['cancelled', 'done'], true) && !$isFull && !$isPast;
                 $statusClass = [
                   'Scheduled' => 'primary',
                   'Done'      => 'success',
@@ -164,7 +167,9 @@
                         </button>
                         @if($isFull)
                           <div class="text-muted small mt-1">Slot penuh, pilih jadwal lain.</div>
-                        @elseif($class->status !== 'Scheduled')
+                        @elseif($isPast)
+                          <div class="text-muted small mt-1">Kelas sudah lewat, tidak dapat dibooking.</div>
+                        @elseif(in_array($normalizedStatus, ['cancelled','done'], true))
                           <div class="text-muted small mt-1">Kelas tidak dapat dibooking.</div>
                         @endif
                       </form>

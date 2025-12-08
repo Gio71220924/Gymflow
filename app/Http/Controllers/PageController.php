@@ -322,8 +322,13 @@ class PageController extends Controller
         }
 
         $class = GymClass::findOrFail($id);
-        if ($class->status !== 'Scheduled') {
+        $statusNormalized = strtolower(trim((string) $class->status));
+        if (in_array($statusNormalized, ['cancelled', 'done'], true)) {
             return back()->with('error', 'Kelas ini tidak tersedia untuk booking.');
+        }
+
+        if (Carbon::parse($class->start_at)->isPast()) {
+            return back()->with('error', 'Kelas sudah berjalan atau selesai, tidak dapat dibooking.');
         }
 
         $activeCount = ClassBooking::where('class_id', $class->id)
