@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
 
 class AuthentikasiController extends Controller
 {
@@ -54,9 +55,10 @@ class AuthentikasiController extends Controller
             'status'   => User::STATUS_ACTIVE,
         ]);
 
+        event(new Registered($user));
         auth()->login($user);
 
-        return redirect()->route('home')->with('success', 'Registrasi berhasil, selamat datang!');
+        return redirect()->route('verification.notice')->with('success', 'Registrasi berhasil, silakan verifikasi email Anda.');
     }
 
     public function logout(Request $request)
