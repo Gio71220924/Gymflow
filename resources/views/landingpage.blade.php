@@ -69,8 +69,11 @@
     }
     .topbar {
       position: sticky;
+      position: -webkit-sticky;
       top: 0;
-      z-index: 20;
+      left: 0;
+      width: 100%;
+      z-index: 40;
       padding: 18px 4vw;
       display: flex;
       align-items: center;
@@ -82,7 +85,8 @@
       transition: box-shadow 0.2s ease, background 0.2s ease;
     }
     .topbar.scrolled { box-shadow: var(--shadow-sm); background: rgba(255,255,255,0.92); }
-    .brand { display: inline-flex; align-items: center; gap: 12px; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; color: inherit; }
+    .brand-logo { display: inline-flex; align-items: center; text-decoration: none; color: inherit; }
     .brand .mark {
       width: 42px;
       height: 42px;
@@ -453,11 +457,16 @@
     
     @media (max-width: 780px) {
       .topbar { 
-        position: static; 
+        position: sticky;
+        position: -webkit-sticky;
+        top: 0;
+        left: 0;
+        width: 100%;
         border-radius: 0 0 18px 18px; 
         flex-direction: column;
         align-items: flex-start;
         padding: 16px 20px;
+        z-index: 50;
       }
       .brand { margin-bottom: 12px; }
       .nav-links { 
@@ -533,13 +542,15 @@
   <div class="page">
     <header class="topbar" id="topbar">
       <div class="brand">
-        <div class="mark{{ $brandLogo ? ' mark-img' : '' }}">
-          @if($brandLogo)
-            <img src="{{ $brandLogo }}" alt="{{ $brandName }} logo">
-          @else
-            {{ strtoupper(substr($brandName, 0, 1)) }}
-          @endif
-        </div>
+        <a class="brand-logo" href="#home">
+          <div class="mark{{ $brandLogo ? ' mark-img' : '' }}">
+            @if($brandLogo)
+              <img src="{{ $brandLogo }}" alt="{{ $brandName }} logo">
+            @else
+              {{ strtoupper(substr($brandName, 0, 1)) }}
+            @endif
+          </div>
+        </a>
         <div>
           <div class="brand-name">{{ $brandName }}</div>
           <div class="brand-tagline">Latihan nyaman, progres nyata</div>
