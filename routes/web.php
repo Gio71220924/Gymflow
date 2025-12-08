@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthentikasiController;
+use App\Http\Controllers\PasswordResetController;
 
 
 Route::group(['middleware' => ['auth']], function () {
@@ -64,5 +65,10 @@ Route::group(['middleware' => ['guest']], function () {
     Route::post('/CekLogin' , [AuthentikasiController::class, 'cekLogin'])->name('cekLogin');
     Route::get('/register', [AuthentikasiController::class, 'registerForm'])->name('register');
     Route::post('/register', [AuthentikasiController::class, 'register'])->name('register.save');
+    // Password Reset (Laravel bawaan)
+    Route::get('/password/reset', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('/password/email', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::get('/password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
     Route::get('/', [PageController::class, 'landing'])->name('landingpage');
 });
