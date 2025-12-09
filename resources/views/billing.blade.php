@@ -29,6 +29,7 @@
     $brandingTagline = $appSettings['branding_tagline'] ?? '';
     $brandingAddress = $appSettings['branding_address'] ?? '';
     $canManageBilling = ($isAdmin ?? false) || (Auth::user()->role ?? null) === \App\User::ROLE_SUPER_ADMIN;
+    $membershipOptions = $membershipOptions ?? collect();
   @endphp
 
   @if(session('success'))
@@ -39,6 +40,90 @@
       </button>
     </div>
   @endif
+
+  @if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      {{ $errors->first() }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  @endif
+
+  @if($canManageBilling)
+    @if($membershipOptions->isEmpty())
+      <div class="alert alert-warning">Belum ada membership yang bisa dibuatkan invoice.</div>
+    @else
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <div class="text-muted text-uppercase small">Tambah Invoice</div>
+              <div class="font-weight-bold">Buat tagihan manual</div>
+            </div>
+            <span class="badge badge-light border">Admin only</span>
+          </div>
+          <form method="POST" action="{{ route('billing.store') }}">
+            @csrf
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <label class="mb-1">Membership</label>
+                <select name="member_membership_id" class="form-control form-control-sm" required>
+                  <option value="">Pilih member & plan</option>
+                  @foreach($membershipOptions as $mm)
+                    @php
+                      $m = $mm->member;
+                      $p = $mm->plan;
+                    @endphp
+                    <option value="{{ $mm->id }}" {{ old('member_membership_id') == $mm->id ? 'selected' : '' }}>
+                      {{ $m->nama_member ?? ('Member #' . $mm->member_id) }} - {{ $p->nama ?? 'Plan' }} ({{ $mm->start_date }} s/d {{ $mm->end_date }})
+                    </option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="form-group col-md-2">
+                <label class="mb-1">Total Tagihan</label>
+                <input type="number" step="0.01" name="total_tagihan" value="{{ old('total_tagihan') }}" class="form-control form-control-sm" placeholder="Otomatis">
+                <small class="text-muted">Kosongkan untuk hitung otomatis.</small>
+              </div>
+              <div class="form-group col-md-2">
+                <label class="mb-1">Jatuh Tempo</label>
+                <input type="date" name="due_date" value="{{ old('due_date') }}" class="form-control form-control-sm">
+              </div>
+              <div class="form-group col-md-2">
+                <label class="mb-1">Status</label>
+                <select name="status" class="form-control form-control-sm">
+                  <option value="menunggu" {{ old('status') === 'menunggu' ? 'selected' : '' }}>Menunggu</option>
+                  <option value="lunas" {{ old('status') === 'lunas' ? 'selected' : '' }}>Lunas</option>
+                  <option value="draft" {{ old('status') === 'draft' ? 'selected' : '' }}>Draft</option>
+                  <option value="batal" {{ old('status') === 'batal' ? 'selected' : '' }}>Batal</option>
+                </select>
+              </div>
+              <div class="form-group col-md-2">
+                <label class="mb-1">Metode Bayar</label>
+                <select name="payment_method" class="form-control form-control-sm">
+                  <option value="">-</option>
+                  <option value="cash" {{ old('payment_method') === 'cash' ? 'selected' : '' }}>Cash</option>
+                  <option value="transfer" {{ old('payment_method') === 'transfer' ? 'selected' : '' }}>Transfer</option>
+                  <option value="ewallet" {{ old('payment_method') === 'ewallet' ? 'selected' : '' }}>E-Wallet</option>
+                  <option value="credit_card" {{ old('payment_method') === 'credit_card' ? 'selected' : '' }}>Credit Card</option>
+                </select>
+                <small class="text-muted">Isi jika status "Lunas".</small>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label class="mb-1">Catatan</label>
+                <input type="text" name="catatan" value="{{ old('catatan') }}" class="form-control form-control-sm" placeholder="Opsional">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Tambah Invoice</button>
+          </form>
+        </div>
+      </div>
+    @endif
+  @endif
+
 
   <div class="row mb-4">
     <div class="col-md-3 mb-3">

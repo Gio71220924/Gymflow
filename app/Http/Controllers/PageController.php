@@ -550,13 +550,79 @@ class PageController extends Controller
             ];
         }
 
+        $membershipOptions = collect();
+        if ($isAdmin) {
+            $membershipOptions = MemberMembership::with(['member', 'plan'])
+                ->orderByDesc('id')
+                ->get();
+        }
+
         return view('billing', [
             'key'      => 'billing',
             'invoices' => $invoices,
             'summary'  => $summary,
             'isAdmin'  => $isAdmin,
+            'membershipOptions' => $membershipOptions,
             'monthlyRevenue' => $monthlyRevenue,
         ]);
+    }
+
+    public function storeInvoice(Request $request)
+    {
+        $this->ensureSuperAdmin($request);
+
+        $data = $request->validate([
+            'member_membership_id' => 'required|exists:member_memberships,id',
+            'due_date'             => 'nullable|date',
+            'total_tagihan'        => 'nullable|numeric|min:0',
+            'diskon'               => 'nullable|numeric|min:0',
+            'pajak'                => 'nullable|numeric|min:0',
+            'status'               => 'required|in:draft,menunggu,lunas,batal',
+            'payment_method'       => 'nullable|in:cash,transfer,ewallet,credit_card',
+            'catatan'              => 'nullable|string',
+        ]);
+
+        $membership = MemberMembership::with('plan')->findOrFail($data['member_membership_id']);
+        $plan       = $membership->plan ?: ($membership->plan_id ? MembershipPlan::find($membership->plan_id) : null);
+
+        $dueDays = (int) $this->getSettingValue('billing_due_days', 0);
+        $dueDate = $data['due_date'] ?? $membership->end_date;
+        if (!$dueDate && $membership->start_date && $dueDays > 0) {
+            $dueDate = Carbon::parse($membership->start_date)->addDays($dueDays)->toDateString();
+        }
+
+        $total = $data['total_tagihan'] ?? $this->calculateTotalTagihan($plan, $membership, 1);
+
+        $invoice = Invoice::create([
+            'member_membership_id' => $membership->id,
+            'nomor_invoice'        => $this->generateInvoiceNumber(),
+            'due_date'             => $dueDate,
+            'total_tagihan'        => $total,
+            'diskon'               => $data['diskon'] ?? (int) $this->getSettingValue('billing_default_discount', 0),
+            'pajak'                => $data['pajak'] ?? (int) $this->getSettingValue('billing_default_tax', 0),
+            'status'               => $data['status'],
+            'catatan'              => $data['catatan'] ?? null,
+        ]);
+
+        $membership->pembayaran_status = $data['status'] === 'lunas'
+            ? 'lunas'
+            : ($data['status'] === 'menunggu' ? 'menunggu' : 'gagal');
+        $membership->save();
+
+        if ($data['status'] === 'lunas') {
+            Payment::create([
+                'invoice_id'   => $invoice->id,
+                'amount'       => $total,
+                'method'       => $data['payment_method'] ?? 'cash',
+                'paid_at'      => Carbon::now(),
+                'status'       => 'berhasil',
+                'bukti_bayar'  => null,
+                'reference_no' => null,
+                'catatan'      => 'Created by admin',
+            ]);
+        }
+
+        return redirect()->route('billing')->with('success', 'Invoice baru berhasil ditambahkan.');
     }
 
     public function printInvoice($id)
