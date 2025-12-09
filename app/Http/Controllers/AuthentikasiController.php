@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Auth;
 
 class AuthentikasiController extends Controller
 {
@@ -24,6 +25,10 @@ class AuthentikasiController extends Controller
         ]);
         if (auth()->attempt($credentials)) {
             $request->session()->regenerate();
+
+            if (! auth()->user()->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice');
+            }
 
             return redirect()->intended('/home');
         }
@@ -52,13 +57,13 @@ class AuthentikasiController extends Controller
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role'     => User::ROLE_USER,
-            'status'   => User::STATUS_ACTIVE,
+            'status'   => User::STATUS_INACTIVE,
         ]);
 
-        event(new Registered($user));
-        auth()->login($user);
+        event(new Registered($user)); // kirim email verifikasi bawaan Laravel
+        Auth::login($user);
 
-        return redirect()->route('verification.notice')->with('success', 'Registrasi berhasil, silakan verifikasi email Anda.');
+        return redirect()->route('verification.notice')->with('success', 'Registrasi berhasil. Cek email untuk verifikasi.');
     }
 
     public function logout(Request $request)

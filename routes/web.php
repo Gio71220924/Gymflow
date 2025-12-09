@@ -5,8 +5,8 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthentikasiController;
 use App\Http\Controllers\PasswordResetController;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
+use Illuminate\Auth\Events\Verified;
 
 
 Route::group(['middleware' => ['auth','verified']], function () {
@@ -81,8 +81,30 @@ Route::group(['middleware' => ['auth']], function () {
         return view('auth.verify');
     })->name('verification.notice');
 
-    Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-        $request->fulfill();
+    Route::get('/email/verify/{id}/{hash}', function (Request $request) {
+        $user = $request->user();
+
+        if (! $user || $user->getKey() != $request->route('id')) {
+            abort(403);
+        }
+
+        if (! hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
+            abort(403);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return redirect('/home');
+        }
+
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
+        }
+
+        if ($user->status !== \App\User::STATUS_ACTIVE) {
+            $user->status = \App\User::STATUS_ACTIVE;
+            $user->save();
+        }
+
         return redirect('/home');
     })->middleware(['signed'])->name('verification.verify');
 

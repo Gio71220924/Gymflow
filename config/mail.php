@@ -16,7 +16,8 @@ return [
     |
     */
 
-    'driver' => env('MAIL_DRIVER', 'smtp'),
+    // Laravel 6 default: MAIL_DRIVER, modern: MAIL_MAILER. Support both.
+    'driver' => env('MAIL_MAILER', env('MAIL_DRIVER', 'smtp')),
 
     /*
     |--------------------------------------------------------------------------
@@ -56,8 +57,9 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'sandbox@mtrgt.net'),
-        'name' => env('MAIL_FROM_NAME', 'Gymflow verification'),
+        // Paksa fallback ke alamat bawaan agar tidak kembali ke sandbox@mtrgt.net
+        'address' => env('MAIL_FROM_ADDRESS', 'hello@demomailtrap.com'),
+        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'GymFlow')),
     ],
 
     /*
