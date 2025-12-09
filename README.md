@@ -1,78 +1,131 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
-
 <p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
+  <img src="https://laravel.com/assets/img/components/logo-laravel.svg" width="400" alt="Gymflow Logo">
 </p>
 
-## About Laravel
+<h1 align="center">Gymflow - Sistem Manajemen Gym</h1>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<p align="center">
+Sistem manajemen gym berbasis web untuk membantu pengelolaan aktivitas dan administrasi gym secara efisien.
+</p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+<p align="center">
+<a href="#"><img src="https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel Badge"></a>
+<a href="#"><img src="https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP Badge"></a>
+<a href="#"><img src="https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL Badge"></a>
+</p>
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tentang Gymflow
 
-## Learning Laravel
+Gymflow adalah sistem manajemen gym berbasis web yang dirancang untuk membantu pengelola gym dalam mengatur jadwal latihan, mencatat kemajuan anggota, mengelola inventaris perlengkapan gym, dan memberikan wawasan analitik untuk meningkatkan efisiensi operasional.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Fitur Utama
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- 🏋️ **Manajemen Anggota** - Pengelolaan data anggota gym
+- 📅 **Jadwal Latihan** - Sistem penjadwalan kelas dan sesi latihan
+- 📊 **Pelacakan Kemajuan** - Memonitor perkembangan latihan anggota
+- 📦 **Manajemen Inventaris** - Pengelolaan peralatan dan perlengkapan gym
+- 👥 **Manajemen Pelatih** - Sistem pengelolaan staff dan pelatih
+- 💰 **Manajemen Keuangan** - Fitur pembayaran dan tagihan
 
-## Laravel Sponsors
+## Teknologi yang Digunakan
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+- **Backend**: Laravel (PHP Framework)
+- **Database**: MySQL
+- **Frontend**: Blade Template Engine, JavaScript
+- **Asset Management**: Webpack, Mix
+- **Dependency Manager**: Composer, NPM
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
-- [Appoly](https://www.appoly.co.uk)
-- [OP.GG](https://op.gg)
+## Instalasi
 
-## Contributing
+### Prasyarat
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- PHP >= 8.0
+- Composer
+- NPM
+- MySQL/MariaDB
+- Web Server (Apache/Nginx)
 
-## Code of Conduct
+### Langkah-langkah Instalasi
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1. Clone repository:
+```bash
+git clone https://github.com/nama-user/Gymflow.git
+cd Gymflow
+```
 
-## Security Vulnerabilities
+2. Install dependency PHP:
+```bash
+composer install
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+3. Install dependency JavaScript:
+```bash
+npm install
+```
 
-## License
+4. Salin file environment dan konfigurasi:
+```bash
+cp .env.example .env
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+5. Generate application key:
+```bash
+php artisan key:generate
+```
+
+6. Konfigurasi database di file `.env`
+
+7. Jalankan migrasi database:
+```bash
+php artisan migrate
+```
+
+8. Jalankan seeding (jika ada):
+```bash
+php artisan db:seed
+```
+
+9. Compile asset:
+```bash
+npm run dev
+```
+
+10. Jalankan aplikasi:
+```bash
+php artisan serve
+```
+
+## Struktur Project
+
+```
+Gymflow/
+├── app/                    # Core application logic
+├── config/                 # Configuration files
+├── database/               # Migrations, seeds, factories
+├── public/                 # Public assets
+├── resources/              # Views, raw assets
+├── routes/                 # Application routes
+└── storage/                # File storage
+```
+
+## Kontribusi
+
+Kami menyambut kontribusi dari komunitas! Silakan ikuti langkah-langkah berikut:
+
+1. Fork project ini
+2. Buat branch fitur baru (`git checkout -b fitur/NamaFitur`)
+3. Commit perubahan Anda (`git commit -m 'Tambahkan fitur NamaFitur'`)
+4. Push ke branch (`git push origin fitur/NamaFitur`)
+5. Buat pull request
+
+## Tim Pengembang
+
+Project ini dikembangkan sebagai tugas akhir semester 7 - PWL (Pemrograman Web Lanjut) di jurusan Sistem Informasi.
+
+## Lisensi
+
+Project ini dilisensikan di bawah MIT License - lihat file [LICENSE](LICENSE) untuk detail lebih lanjut.
+
+---
+
+<h3 align="center">Dibangun dengan ❤️ untuk membantu dunia fitness</h3>
