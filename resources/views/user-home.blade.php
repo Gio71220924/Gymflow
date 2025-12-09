@@ -68,6 +68,7 @@
   use Carbon\Carbon;
   $user = Auth::user();
   $memberName = $member ? ($member->nama_member ?? $user->name) : $user->name;
+  $memberFirstName = trim(strtok($memberName, ' ')) ?: $memberName;
   $planName = ($membership && $membership->plan)
       ? $membership->plan->nama
       : ($member ? ($member->membership_plan ?? 'Basic') : 'Basic');
@@ -110,7 +111,7 @@
 
 <div class="member-hero mb-3">
   <div style="position:relative; z-index:1;">
-    <div class="pill-mini mb-2">Halo, {{ $memberName }}</div>
+    <div class="pill-mini mb-2">Halo, {{ $memberFirstName }}</div>
     <h3>Latihan nyaman, progres terukur.</h3>
     <p>Plan {{ ucfirst($planName) }} - Status {{ $statusLabel }} - {{ $daysLeftText }}</p>
     <div class="hero-actions">
