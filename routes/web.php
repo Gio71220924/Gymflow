@@ -49,6 +49,10 @@ Route::group(['middleware' => ['auth','verified']], function () {
     // Sementara fallback GET (kalau tombol masih <a href="...">):
     Route::get('/member/delete-member/{id}', [PageController::class, 'deleteMember']);
 
+    // Member self-profile setup (user-only)
+    Route::get('/member/profile/setup', [PageController::class, 'memberProfileForm'])->name('member.profile.setup');
+    Route::post('/member/profile/setup', [PageController::class, 'memberProfileSave'])->name('member.profile.save');
+
     // Users (CRUD by admin)
     Route::get('/users', [UserController::class, 'getuser'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
@@ -104,6 +108,10 @@ Route::group(['middleware' => ['auth']], function () {
         if ($user->status !== \App\User::STATUS_ACTIVE) {
             $user->status = \App\User::STATUS_ACTIVE;
             $user->save();
+        }
+
+        if ($user->role === \App\User::ROLE_USER && ! $user->memberGym) {
+            return redirect()->route('member.profile.setup')->with('success', 'Verifikasi berhasil. Lengkapi profil member Anda.');
         }
 
         return redirect('/home');

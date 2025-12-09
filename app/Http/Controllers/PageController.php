@@ -72,6 +72,9 @@ class PageController extends Controller
     public function home()
     {
         $user = auth()->user();
+        if ($user && $user->role === User::ROLE_USER && !$user->memberGym) {
+            return redirect()->route('member.profile.setup');
+        }
         //Khusus user biasa
         if ($user && $user->role === User::ROLE_USER) {
             $member = $user->memberGym;
@@ -380,6 +383,12 @@ class PageController extends Controller
         $member = $user->memberGym;
         if (!$member) {
             return back()->with('error', 'Data member tidak ditemukan.');
+        }
+
+        $latestMembership = $member->memberMemberships()->latest('id')->first();
+        $latestInvoice = $latestMembership ? $latestMembership->invoices()->latest('id')->first() : null;
+        if ($latestInvoice && $latestInvoice->status !== 'lunas') {
+            return back()->with('error', 'Anda belum melunasi tagihan Anda.');
         }
 
         $class = GymClass::findOrFail($id);
@@ -774,6 +783,84 @@ class PageController extends Controller
         return redirect()->route('settings')->with('success', 'Settings tersimpan.');
     }
 
+    /* ======================== MEMBER SELF SETUP ======================== */
+
+    public function memberProfileForm(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || $user->role !== User::ROLE_USER) {
+            abort(403, 'Hanya member yang dapat mengisi profil member.');
+        }
+        if ($user->memberGym) {
+            return redirect()->route('home');
+        }
+
+        $today = Carbon::today()->toDateString();
+
+        return view('member-profile-setup', [
+            'key' => 'member-profile-setup',
+            'user' => $user,
+            'today' => $today,
+        ]);
+    }
+
+    public function memberProfileSave(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || $user->role !== User::ROLE_USER) {
+            abort(403, 'Hanya member yang dapat mengisi profil member.');
+        }
+        if ($user->memberGym) {
+            return redirect()->route('home');
+        }
+
+        $validated = $request->validate([
+            'nama_member'          => 'required|string|max:100',
+            'nomor_telepon_member' => 'required|string|max:20',
+            'tanggal_lahir'        => 'required|date',
+            'gender'               => 'required|in:Laki-laki,Perempuan',
+            'tanggal_join'         => 'required|date',
+            'membership_plan'      => 'required|in:basic,premium',
+            'durasi_plan'          => 'required|integer|min:1',
+            'start_date'           => 'required|date',
+            'notes'                => 'nullable|string',
+        ]);
+
+        $joinDate = Carbon::parse($validated['tanggal_join']);
+        $start    = Carbon::parse($validated['start_date']);
+        $durasi   = max(1, (int) $validated['durasi_plan']);
+        $endDate  = $start->copy()->addMonths($durasi)->toDateString();
+
+        $idMember = $this->generateMemberId($validated['membership_plan'], $joinDate);
+
+        $member = Member_Gym::create([
+            'user_id'              => $user->id,
+            'id_member'            => $idMember,
+            'nama_member'          => $validated['nama_member'],
+            'email_member'         => $user->email,
+            'nomor_telepon_member' => $validated['nomor_telepon_member'],
+            'tanggal_lahir'        => $validated['tanggal_lahir'],
+            'gender'               => $validated['gender'],
+            'tanggal_join'         => $joinDate->toDateString(),
+            'membership_plan'      => $validated['membership_plan'],
+            'durasi_plan'          => $durasi,
+            'start_date'           => $start->toDateString(),
+            'end_date'             => $endDate,
+            'status_membership'    => 'Aktif',
+            'notes'                => $validated['notes'] ?? null,
+            'foto_profil'          => null,
+        ]);
+
+        $dataForSync = array_merge($validated, [
+            'end_date'          => $endDate,
+            'status_membership' => 'Aktif',
+        ]);
+
+        $this->syncMembershipAndInvoice($member, $dataForSync);
+
+        return redirect()->route('home')->with('success', 'Profil member berhasil disimpan.');
+    }
+
     /* ======================== MEMBER ======================== */
 
     public function addMemberForm()
@@ -1055,6 +1142,20 @@ class PageController extends Controller
         } while (Invoice::where('nomor_invoice', $candidate)->exists());
 
         return $candidate;
+    }
+
+    private function generateMemberId(string $planName, Carbon $joinDate)
+    {
+        $planKey = strtolower($planName) === 'premium' ? 'premium' : 'basic';
+        $prefix = strtoupper($planKey);
+        $ym = $joinDate->format('Ym'); // YYYYMM
+
+        $order = Member_Gym::where('membership_plan', $planKey)
+            ->whereYear('tanggal_join', $joinDate->year)
+            ->whereMonth('tanggal_join', $joinDate->month)
+            ->count() + 1;
+
+        return sprintf('%s-%s%02d', $prefix, $ym, $order);
     }
 
     private function defaultPlanPrice(?string $name)
