@@ -72,8 +72,14 @@
   $planName = ($membership && $membership->plan)
       ? $membership->plan->nama
       : ($member ? ($member->membership_plan ?? 'Basic') : 'Basic');
-  $membershipStatus = $membership->status ?? ($member ? ($member->status_membership ?? 'Belum diatur') : 'Belum diatur');
-  $statusLabel = ucwords(str_replace(['_', '-'], ' ', $membershipStatus));
+  $membershipEndDate = $membershipEndDate ?? ($membership->end_date ?? ($member ? ($member->end_date ?? null) : null));
+  $membershipExpired = $membershipExpired ?? false;
+  $membershipStatus = $membershipExpired
+      ? 'Expired'
+      : ($membership->status ?? ($member ? ($member->status_membership ?? 'Belum diatur') : 'Belum diatur'));
+  $statusLabel = $membershipExpired
+      ? 'Expired'
+      : ucwords(str_replace(['_', '-'], ' ', $membershipStatus));
   $startDate = $membership->start_date ?? ($member ? ($member->start_date ?? null) : null);
   $endDate = $membership->end_date ?? ($member ? ($member->end_date ?? null) : null);
   $daysLeftText = 'Tanggal belum diatur';
@@ -101,11 +107,11 @@
       $membershipProgress = round(($elapsed / $totalDays) * 100);
   }
   $normalizedStatus = strtolower(trim($membershipStatus));
-  $isActiveMembership = in_array($normalizedStatus, ['aktif', 'active']);
-  $heroChipText = $isActiveMembership ? 'Membership aktif' : 'Membership tidak aktif';
-  $heroChipIcon = $isActiveMembership ? 'bi-shield-check' : 'bi-exclamation-triangle';
-  $heroChipClass = $isActiveMembership ? '' : ' inactive';
-  $todayClasses = collect($todayClasses ?? []);
+  $isActiveMembership = !$membershipExpired && in_array($normalizedStatus, ['aktif', 'active']);
+  $heroChipText = $membershipExpired ? 'Membership expired' : ($isActiveMembership ? 'Membership aktif' : 'Membership tidak aktif');
+  $heroChipIcon = $membershipExpired ? 'bi-exclamation-triangle' : ($isActiveMembership ? 'bi-shield-check' : 'bi-exclamation-triangle');
+  $heroChipClass = $membershipExpired ? ' inactive' : ($isActiveMembership ? '' : ' inactive');
+  $todayClasses = $membershipExpired ? collect() : collect($todayClasses ?? []);
 @endphp
 
 
@@ -115,7 +121,11 @@
     <h3>Latihan nyaman, progres terukur.</h3>
     <p>Plan {{ ucfirst($planName) }} - Status {{ $statusLabel }} - {{ $daysLeftText }}</p>
     <div class="hero-actions">
-      <a class="btn btn-light btn-sm" href="/class">Lihat jadwal</a>
+      @if($membershipExpired)
+        <span class="btn btn-light btn-sm disabled" aria-disabled="true">Lihat jadwal</span>
+      @else
+        <a class="btn btn-light btn-sm" href="/class">Lihat jadwal</a>
+      @endif
       <a class="btn btn-outline-dark btn-sm border-dark" href="/billing">Tagihan saya</a>
       <a class="btn btn-outline-dark btn-sm border-dark" href="{{ route('change-password') }}">Profil</a>
     </div>
@@ -124,6 +134,16 @@
     <span class="hero-chip{{ $heroChipClass }}"><i class="bi {{ $heroChipIcon }}"></i>{{ $heroChipText }}</span>
   </div>
 </div>
+
+@if($membershipExpired)
+  <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+    <i class="bi bi-exclamation-triangle-fill mr-2"></i>
+    <div>
+      Masa berlaku membership Anda telah berakhir{{ $membershipEndDate ? ' pada ' . Carbon::parse($membershipEndDate)->format('d M Y') : '' }}. 
+      Perpanjang terlebih dulu untuk kembali mengakses jadwal & kelas.
+    </div>
+  </div>
+@endif
 
 <div class="row">
   <div class="col-md-4 mb-3">
@@ -161,11 +181,19 @@
 <div class="mb-3">
   <h5 class="mb-2">Akses cepat</h5>
   <div class="quick-grid">
-    <a class="quick-card" href="/class">
-      <div class="quick-icon"><i class="bi bi-calendar2-week"></i></div>
-      <div class="font-weight-bold">Booking kelas</div>
-      <div class="stat-meta">Lihat slot terbaru dan dapatkan pengingat.</div>
-    </a>
+    @if($membershipExpired)
+      <div class="quick-card" style="opacity:0.6; cursor:not-allowed;">
+        <div class="quick-icon"><i class="bi bi-calendar2-week"></i></div>
+        <div class="font-weight-bold">Booking kelas</div>
+        <div class="stat-meta">Perpanjang membership untuk akses kelas.</div>
+      </div>
+    @else
+      <a class="quick-card" href="/class">
+        <div class="quick-icon"><i class="bi bi-calendar2-week"></i></div>
+        <div class="font-weight-bold">Booking kelas</div>
+        <div class="stat-meta">Lihat slot terbaru dan dapatkan pengingat.</div>
+      </a>
+    @endif
     <a class="quick-card" href="/billing">
       <div class="quick-icon"><i class="bi bi-receipt"></i></div>
       <div class="font-weight-bold">Tagihan & riwayat</div>
@@ -189,7 +217,13 @@
     <div class="stat-card h-100">
       <div class="stat-meta">Jadwal hari ini</div>
       <ul class="schedule-list">
-        @forelse($todayClasses as $class)
+        @if($membershipExpired)
+          <li class="schedule-item">
+            <div class="title">Membership berakhir.</div>
+            <div class="stat-meta">Perpanjang membership untuk melihat jadwal kelas.</div>
+          </li>
+        @else
+          @forelse($todayClasses as $class)
           @php
             $start = Carbon::parse($class->start_at);
             $end   = Carbon::parse($class->end_at);
@@ -231,7 +265,8 @@
             <div class="title">Belum ada jadwal kelas hari ini.</div>
             <div class="stat-meta">Cek jadwal lain di halaman kelas.</div>
           </li>
-        @endforelse
+          @endforelse
+        @endif
       </ul>
     </div>
   </div>

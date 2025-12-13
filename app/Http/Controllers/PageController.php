@@ -84,6 +84,8 @@ class PageController extends Controller
             $invoiceDueIn = null;
             $today = Carbon::today();
             $memberId = optional($member)->id;
+            $membershipEndDate = null;
+            $membershipExpired = false;
 
             if ($member) {
                 $membership = $member->memberMemberships()
@@ -93,10 +95,13 @@ class PageController extends Controller
                     ->latest('id')
                     ->first();
 
+                $membershipEndDate = $membership->end_date ?? $member->end_date;
+                $membershipExpired = $this->isMembershipExpired($membership, $member);
+
                 $latestInvoice = $membership ? $membership->invoices->first() : null;
 
-                if ($membership && $membership->end_date) {
-                    $daysLeft = Carbon::now()->diffInDays(Carbon::parse($membership->end_date), false);
+                if ($membershipEndDate) {
+                    $daysLeft = Carbon::now()->diffInDays(Carbon::parse($membershipEndDate), false);
                 }
 
                 if ($latestInvoice && $latestInvoice->due_date) {
@@ -104,38 +109,43 @@ class PageController extends Controller
                 }
             }
 
-            $todayClasses = DB::table('gym_classes as gc')
-                ->select('gc.id', 'gc.title', 'gc.location', 'gc.start_at', 'gc.end_at', 'gc.capacity', 'gc.status')
-                ->whereDate('gc.start_at', $today)
-                ->selectSub(function ($query) {
-                    $query->from('class_bookings as cb')
-                        ->whereColumn('cb.class_id', 'gc.id')
-                        ->whereIn('cb.status', ['booked', 'attended', 'no_show'])
-                        ->selectRaw('COUNT(*)');
-                }, 'booked_count')
-                ->when($memberId, function ($query) use ($memberId) {
-                    $query->selectSub(function ($sub) use ($memberId) {
-                        $sub->from('class_bookings as cb')
+            $todayClasses = collect();
+            if (!$membershipExpired) {
+                $todayClasses = DB::table('gym_classes as gc')
+                    ->select('gc.id', 'gc.title', 'gc.location', 'gc.start_at', 'gc.end_at', 'gc.capacity', 'gc.status')
+                    ->whereDate('gc.start_at', $today)
+                    ->selectSub(function ($query) {
+                        $query->from('class_bookings as cb')
                             ->whereColumn('cb.class_id', 'gc.id')
-                            ->where('cb.member_id', $memberId)
-                            ->select('cb.status')
-                            ->latest('cb.id')
-                            ->limit(1);
-                    }, 'user_booking_status');
-                }, function ($query) {
-                    $query->selectRaw('NULL as user_booking_status');
-                })
-                ->orderBy('gc.start_at')
-                ->get();
+                            ->whereIn('cb.status', ['booked', 'attended', 'no_show'])
+                            ->selectRaw('COUNT(*)');
+                    }, 'booked_count')
+                    ->when($memberId, function ($query) use ($memberId) {
+                        $query->selectSub(function ($sub) use ($memberId) {
+                            $sub->from('class_bookings as cb')
+                                ->whereColumn('cb.class_id', 'gc.id')
+                                ->where('cb.member_id', $memberId)
+                                ->select('cb.status')
+                                ->latest('cb.id')
+                                ->limit(1);
+                        }, 'user_booking_status');
+                    }, function ($query) {
+                        $query->selectRaw('NULL as user_booking_status');
+                    })
+                    ->orderBy('gc.start_at')
+                    ->get();
+            }
 
             return view('user-home', [
-                'key'           => 'user-home',
-                'member'        => $member,
-                'membership'    => $membership,
-                'latestInvoice' => $latestInvoice,
-                'daysLeft'      => $daysLeft,
-                'invoiceDueIn'  => $invoiceDueIn,
-                'todayClasses'  => $todayClasses,
+                'key'                => 'user-home',
+                'member'             => $member,
+                'membership'         => $membership,
+                'latestInvoice'      => $latestInvoice,
+                'daysLeft'           => $daysLeft,
+                'invoiceDueIn'       => $invoiceDueIn,
+                'todayClasses'       => $todayClasses,
+                'membershipExpired'  => $membershipExpired,
+                'membershipEndDate'  => $membershipEndDate,
             ]);
         }
 
@@ -224,9 +234,16 @@ class PageController extends Controller
         }
 
         $user     = $request->user();
-        $memberId = optional(optional($user)->memberGym)->id;
+        $member   = optional($user)->memberGym;
+        $memberId = optional($member)->id;
         $isAdmin  = $user && $user->role === User::ROLE_SUPER_ADMIN;
         $isUser   = $user && $user->role === User::ROLE_USER;
+        $membership = $member ? $member->memberMemberships()->latest('id')->first() : null;
+
+        // Tidak bisa akses kelas, auto redirect ke Home jika membership expired
+        if ($isUser && $this->isMembershipExpired($membership, $member)) {
+            return redirect()->route('home')->with('error', 'Membership Anda sudah berakhir. Perpanjang untuk melihat atau booking kelas.');
+        }
 
         $classes = DB::table('gym_classes as gc')
             ->select('gc.*')
@@ -386,6 +403,10 @@ class PageController extends Controller
         }
 
         $latestMembership = $member->memberMemberships()->latest('id')->first();
+        if ($this->isMembershipExpired($latestMembership, $member)) {
+            return back()->with('error', 'Membership Anda sudah berakhir. Perpanjang untuk booking kelas.');
+        }
+
         $latestInvoice = $latestMembership ? $latestMembership->invoices()->latest('id')->first() : null;
         if ($latestInvoice && $latestInvoice->status !== 'lunas') {
             return back()->with('error', 'Anda belum melunasi tagihan Anda.');
@@ -1164,6 +1185,16 @@ class PageController extends Controller
         if ($key === 'basic')   return (int) $this->getSettingValue('billing_basic_price', 150000);
         if ($key === 'premium') return (int) $this->getSettingValue('billing_premium_price', 300000);
         return 0;
+    }
+
+    private function isMembershipExpired($membership = null, $member = null)
+    {
+        $endDate = optional($membership)->end_date ?? optional($member)->end_date;
+        if (!$endDate) {
+            return false;
+        }
+
+        return Carbon::parse($endDate)->endOfDay()->isPast();
     }
 
     /* ===== Settings storage helpers (hindari duplikasi) ===== */
