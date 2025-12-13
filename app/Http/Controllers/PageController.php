@@ -232,6 +232,8 @@ class PageController extends Controller
         if (! in_array($perPage, [10, 20, 50], true)) {
             $perPage = 10;
         }
+        $sort = $request->input('sort', 'terbaru'); // terbaru = desc, terlama = asc
+        $now  = Carbon::now('Asia/Jakarta');
 
         $user     = $request->user();
         $member   = optional($user)->memberGym;
@@ -283,11 +285,18 @@ class PageController extends Controller
                         )", ['%' . $q . '%']);
                 });
             })
-            ->orderBy('gc.start_at')
+            ->when($sort === 'terlama', function ($query) {
+                $query->orderBy('gc.start_at', 'asc');
+            }, function ($query) use ($now) {
+                // "terbaru": tampilkan jadwal mendatang lebih dulu (urut paling dekat), lalu yang sudah lewat
+                $query->orderByRaw("CASE WHEN gc.start_at >= ? THEN 0 ELSE 1 END", [$now])
+                      ->orderBy('gc.start_at', 'asc');
+            })
             ->paginate($perPage)
             ->appends([
                 'q'        => $q,
                 'per_page' => $perPage,
+                'sort'     => $sort,
             ]);
 
         $participants = collect();
@@ -311,6 +320,7 @@ class PageController extends Controller
             'isUser'      => $isUser,
             'participants'=> $participants,
             'memberId'    => $memberId,
+            'sort'        => $sort,
         ]);
     }
 

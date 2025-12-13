@@ -51,6 +51,13 @@
             </select>
           </div>
 
+          <div class="col-auto mb-2 mb-md-0">
+            <select name="sort" class="form-control" onchange="this.form.submit()">
+              <option value="terbaru" {{ ($sort ?? 'terbaru') === 'terbaru' ? 'selected' : '' }}>Terbaru dulu</option>
+              <option value="terlama" {{ ($sort ?? 'terbaru') === 'terlama' ? 'selected' : '' }}>Terlama dulu</option>
+            </select>
+          </div>
+
           <div class="col-auto">
             <button type="submit" class="btn btn-primary">Search</button>
             <a href="{{ route('class') }}" class="btn btn-light">Reset</a>
