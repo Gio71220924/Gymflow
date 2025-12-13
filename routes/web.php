@@ -62,6 +62,9 @@ Route::group(['middleware' => ['auth','verified']], function () {
     // Change Password
     Route::get('/change-password', [UserController::class, 'changePasswordForm'])->name('change-password');
     Route::post('/change-password', [UserController::class, 'updatePassword'])->name('update-password');
+
+    // Membership renewal (user)
+    Route::post('/membership/renew', [PageController::class, 'renewMembership'])->name('membership.renew');
     });
 
 Route::group(['middleware' => ['guest']], function () {

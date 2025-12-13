@@ -1028,6 +1028,66 @@ class PageController extends Controller
         return redirect()->route('member')->with('success', 'Member berhasil dihapus!');
     }
 
+    public function renewMembership(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || $user->role !== User::ROLE_USER) {
+            abort(403, 'Hanya member yang dapat memperpanjang membership.');
+        }
+
+        $member = $user->memberGym;
+        if (!$member) {
+            return back()->with('error', 'Data member tidak ditemukan.');
+        }
+
+        $validated = $request->validate([
+            'plan'   => 'required|in:basic,premium',
+            'durasi' => 'required|integer|min:1|max:24',
+        ]);
+
+        $durasi = (int) $validated['durasi'];
+        $today  = Carbon::today();
+
+        $latestMembership = $member->memberMemberships()->latest('id')->first();
+        $startDate = $today->copy();
+        if ($latestMembership && $latestMembership->end_date) {
+            $latestEnd = Carbon::parse($latestMembership->end_date);
+            if ($latestEnd->isToday() || $latestEnd->isFuture()) {
+                $startDate = $latestEnd->copy()->addDay();
+            }
+        }
+        $endDate = $startDate->copy()->addMonths($durasi);
+
+        $plan = $this->resolvePlanFromName($validated['plan'], $durasi);
+        if (!$plan) {
+            return back()->with('error', 'Plan tidak ditemukan.');
+        }
+
+        $membership = MemberMembership::create([
+            'member_id'         => $member->id,
+            'plan_id'           => $plan->id,
+            'start_date'        => $startDate->toDateString(),
+            'end_date'          => $endDate->toDateString(),
+            'status'            => 'aktif',
+            'pembayaran_status' => 'menunggu',
+            'catatan'           => 'Perpanjangan membership oleh pengguna',
+        ]);
+
+        $member->membership_plan  = $validated['plan'];
+        $member->durasi_plan      = $durasi;
+        $member->start_date       = $membership->start_date;
+        $member->end_date         = $membership->end_date;
+        $member->status_membership= 'Aktif';
+        $member->save();
+
+        $this->createInvoiceForMembership($membership, $plan, [
+            'durasi_plan' => $durasi,
+            'end_date'    => $membership->end_date,
+        ]);
+
+        return redirect()->route('billing')->with('success', 'Membership diperpanjang. Invoice baru dibuat.');
+    }
+
     /* ======================== HELPERS ======================== */
 
     private function syncMembershipAndInvoice(Member_Gym $member, array $data)

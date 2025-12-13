@@ -222,6 +222,12 @@
           }
           $selectedMethod = $payment->method ?? 'cash';
           $period = $membership ? ($membership->start_date . ' - ' . $membership->end_date) : '-';
+          $paidAtLocal = ($payment && $payment->paid_at)
+            ? \Carbon\Carbon::parse($payment->paid_at)->timezone('Asia/Jakarta')
+            : null;
+          $paidAtText = $paidAtLocal
+            ? $paidAtLocal->format('d-m H:i:s') . ''
+            : '-';
         @endphp
         <tr>
           <td>
@@ -257,7 +263,7 @@
                 <span class="badge badge-soft {{ $payment->status }} mr-2 text-capitalize">{{ $payment->status }}</span>
                 <div>
                   <div>Rp {{ number_format($payment->amount, 0, ',', '.') }}</div>
-                  <small class="text-muted">{{ $payment->method }} @ {{ $payment->paid_at ?? '-' }}</small>
+                  <small class="text-muted">{{ $payment->method }} @ {{ $paidAtText }}</small>
                 </div>
               </div>
             @else
@@ -265,7 +271,7 @@
             @endif
           </td>
           <td>{{ $invoice->due_date ?? '-' }}</td>
-          <td>{{ $payment->paid_at ?? '-' }}</td>
+          <td>{{ $paidAtText }}</td>
           @if($canManageBilling)
           <td>
             <form method="POST" action="{{ route('billing.update', $invoice->id) }}" class="form-inline">

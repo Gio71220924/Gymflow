@@ -72,6 +72,9 @@
   $planName = ($membership && $membership->plan)
       ? $membership->plan->nama
       : ($member ? ($member->membership_plan ?? 'Basic') : 'Basic');
+  $planKey = strtolower($planName);
+  $renewPlan = old('plan', $planKey ?: 'basic');
+  $renewDurasi = old('durasi', $member->durasi_plan ?? 1);
   $membershipEndDate = $membershipEndDate ?? ($membership->end_date ?? ($member ? ($member->end_date ?? null) : null));
   $membershipExpired = $membershipExpired ?? false;
   $membershipStatus = $membershipExpired
@@ -114,6 +117,23 @@
   $todayClasses = $membershipExpired ? collect() : collect($todayClasses ?? []);
 @endphp
 
+@if(session('success'))
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="bi bi-check-circle mr-2"></i>{{ session('success') }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+@endif
+@if(session('error'))
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle mr-2"></i>{{ session('error') }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+@endif
+
 
 <div class="member-hero mb-3">
   <div style="position:relative; z-index:1;">
@@ -141,6 +161,37 @@
     <div>
       Masa berlaku membership Anda telah berakhir{{ $membershipEndDate ? ' pada ' . Carbon::parse($membershipEndDate)->format('d M Y') : '' }}. 
       Perpanjang terlebih dulu untuk kembali mengakses jadwal & kelas.
+    </div>
+  </div>
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Perpanjang membership</h5>
+      <form method="POST" action="{{ route('membership.renew') }}">
+        @csrf
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="plan">Pilih paket</label>
+            <select id="plan" name="plan" class="form-control @error('plan') is-invalid @enderror">
+              <option value="basic" {{ $renewPlan === 'basic' ? 'selected' : '' }}>Basic</option>
+              <option value="premium" {{ $renewPlan === 'premium' ? 'selected' : '' }}>Premium</option>
+            </select>
+            @error('plan') <div class="invalid-feedback">{{ $message }}</div> @enderror
+          </div>
+          <div class="form-group col-md-6">
+            <label for="durasi">Durasi (bulan)</label>
+            <input type="number"
+                   id="durasi"
+                   name="durasi"
+                   min="1"
+                   max="24"
+                   value="{{ $renewDurasi }}"
+                   class="form-control @error('durasi') is-invalid @enderror">
+            <small class="form-text text-muted">Invoice baru akan dibuat dengan status menunggu.</small>
+            @error('durasi') <div class="invalid-feedback">{{ $message }}</div> @enderror
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Perpanjang sekarang</button>
+      </form>
     </div>
   </div>
 @endif
