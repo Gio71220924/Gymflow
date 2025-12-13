@@ -11,10 +11,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+        require_once __DIR__ . '/TrainerSeeder.php';
+
         $this->call([
             MembershipPlanSeeder::class,
             AdminUserSeeder::class,
             GymClassSeeder::class,
+            TrainerSeeder::class,
         ]);
     }
 }

@@ -320,6 +320,10 @@
               <i class="bi bi-people"></i>
               <span class="label">Members</span>
             </a>
+            <a class="nav-link {{ ($key ?? '') === 'trainers' ? 'active' : '' }}" href="{{ route('trainers.index') }}">
+              <i class="bi bi-person-badge"></i>
+              <span class="label">Instruktur</span>
+            </a>
             <a class="nav-link {{ ($key ?? '') === 'users' ? 'active' : '' }}" href="/users">
               <i class="bi bi-person-gear"></i>
               <span class="label">Users</span>

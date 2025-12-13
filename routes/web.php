@@ -5,6 +5,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthentikasiController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\TrainerController;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Verified;
 
@@ -65,6 +66,14 @@ Route::group(['middleware' => ['auth','verified']], function () {
 
     // Membership renewal (user)
     Route::post('/membership/renew', [PageController::class, 'renewMembership'])->name('membership.renew');
+
+    // Trainers (admin)
+    Route::get('/trainers', [TrainerController::class, 'index'])->name('trainers.index');
+    Route::get('/trainers/create', [TrainerController::class, 'create'])->name('trainers.create');
+    Route::post('/trainers', [TrainerController::class, 'store'])->name('trainers.store');
+    Route::get('/trainers/{id}/edit', [TrainerController::class, 'edit'])->name('trainers.edit');
+    Route::put('/trainers/{id}', [TrainerController::class, 'update'])->name('trainers.update');
+    Route::delete('/trainers/{id}', [TrainerController::class, 'destroy'])->name('trainers.destroy');
     });
 
 Route::group(['middleware' => ['guest']], function () {
