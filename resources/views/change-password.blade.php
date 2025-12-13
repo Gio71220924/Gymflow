@@ -25,7 +25,7 @@
     </div>
     @endif
 
-    <form action="{{ route('settings.save') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('update-password') }}" method="POST" enctype="multipart/form-data">
       @csrf
       <input type="hidden" name="section" value="account">
 
