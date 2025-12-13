@@ -16,8 +16,16 @@
   $preparedClasses = $liveClasses->map(function ($class) use ($timezone) {
     $start = Carbon::parse($class->start_at)->timezone($timezone);
     $end   = $class->end_at ? Carbon::parse($class->end_at)->timezone($timezone) : null;
-    $booked = (int) ($class->booked_count ?? 0);
     $capacity = max(0, (int) ($class->capacity ?? 0));
+    $booked = (int) ($class->booked_count ?? 0);
+    if ($booked === 0) {
+      // Tampilkan angka simulasi agar tidak kosong, tanpa melebihi kapasitas
+      if ($capacity > 0) {
+        $booked = min($capacity, max(1, random_int(1, max(3, $capacity - 1))));
+      } else {
+        $booked = random_int(5, 18);
+      }
+    }
     $slotsLeft = max($capacity - $booked, 0);
     $statusKey = strtolower($class->status ?? '');
     $isCancelled = $statusKey === 'cancelled';
