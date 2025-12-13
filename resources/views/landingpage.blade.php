@@ -73,17 +73,19 @@
       top: 0;
       left: 0;
       width: 100%;
-      z-index: 40;
+      z-index: 1000;
       padding: 18px 4vw;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      background: rgba(255,255,255,0.78);
+      background: #ffffff; /* Make background fully opaque for sticky header */
       border-bottom: 1px solid rgba(228,231,239,0.6);
       backdrop-filter: blur(14px);
       transition: box-shadow 0.2s ease, background 0.2s ease;
+      border-radius: 0 0 18px 18px;
     }
+
     .topbar.scrolled { box-shadow: var(--shadow-sm); background: rgba(255,255,255,0.92); }
     .brand { display: inline-flex; align-items: center; gap: 12px; color: inherit; }
     .brand-logo { display: inline-flex; align-items: center; text-decoration: none; color: inherit; }
