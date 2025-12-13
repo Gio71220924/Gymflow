@@ -81,21 +81,25 @@
           <tbody>
             @forelse(($classes ?? []) as $class)
               @php
-                $start = \Carbon\Carbon::parse($class->start_at);
-                $end   = \Carbon\Carbon::parse($class->end_at);
-                $startObj = \Carbon\Carbon::parse($class->start_at);
+                $start = \Carbon\Carbon::parse($class->start_at)->timezone('Asia/Jakarta');
+                $end   = \Carbon\Carbon::parse($class->end_at)->timezone('Asia/Jakarta');
+                $startObj = $start->copy();
                 $bookedCount = (int) ($class->booked_count ?? 0);
                 $isFull = $bookedCount >= ($class->capacity ?? 0);
                 $userBookingStatus = $class->user_booking_status ?? null;
                 $classParticipants = ($participants ?? collect())->get($class->id, collect());
                 $normalizedStatus = strtolower(trim((string) $class->status));
+                if ($startObj->isFuture() && $normalizedStatus === 'done') {
+                  $normalizedStatus = 'scheduled'; // data bisa out-of-sync, anggap masih berjalan
+                }
                 $isPast = $startObj->isPast();
                 $canJoin = !in_array($normalizedStatus, ['cancelled', 'done'], true) && !$isFull && !$isPast;
                 $statusClass = [
-                  'Scheduled' => 'primary',
-                  'Done'      => 'success',
-                  'Cancelled' => 'danger',
-                ][$class->status] ?? 'secondary';
+                  'scheduled' => 'primary',
+                  'done'      => 'success',
+                  'cancelled' => 'danger',
+                ][$normalizedStatus] ?? 'secondary';
+                $statusLabel = ucfirst($normalizedStatus);
               @endphp
               <tr>
                 <td>
@@ -112,7 +116,7 @@
                   <div class="text-muted small">Tersisa {{ max(($class->capacity ?? 0) - $bookedCount, 0) }} slot</div>
                 </td>
                 <td>
-                  <span class="badge badge-{{ $statusClass }}">{{ $class->status }}</span>
+                  <span class="badge badge-{{ $statusClass }}">{{ $statusLabel }}</span>
                 </td>
                 <td>
                   @if($isAdmin ?? false)

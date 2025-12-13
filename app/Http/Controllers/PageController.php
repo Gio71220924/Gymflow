@@ -413,12 +413,17 @@ class PageController extends Controller
         }
 
         $class = GymClass::findOrFail($id);
+        $classStart = Carbon::parse($class->start_at)->timezone('Asia/Jakarta');
         $statusNormalized = strtolower(trim((string) $class->status));
+        if ($classStart->isFuture() && $statusNormalized === 'done') {
+            $statusNormalized = 'scheduled'; // data bisa tidak sinkron, anggap jadwal aktif
+        }
+
         if (in_array($statusNormalized, ['cancelled', 'done'], true)) {
             return back()->with('error', 'Kelas ini tidak tersedia untuk booking.');
         }
 
-        if (Carbon::parse($class->start_at)->isPast()) {
+        if ($classStart->isPast()) {
             return back()->with('error', 'Kelas sudah berjalan atau selesai, tidak dapat dibooking.');
         }
 

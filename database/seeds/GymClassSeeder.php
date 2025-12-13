@@ -11,7 +11,7 @@ class GymClassSeeder extends Seeder
      */
     public function run()
     {
-        $baseDate   = Carbon::now()->startOfWeek(Carbon::MONDAY)->setTime(6, 0, 0);
+        $baseDate   = Carbon::now('Asia/Jakarta')->startOfWeek(Carbon::MONDAY)->setTime(6, 0, 0);
         $levels     = ['Beginner', 'Intermediate', 'Advanced'];
         $types      = ['Cardio', 'Strength', 'HIIT', 'Yoga', 'Pilates', 'Mobility', 'Cycling'];
         $locations  = ['Studio A', 'Studio B', 'Studio C', 'Outdoor', 'Pool', 'Functional Area'];
@@ -32,8 +32,9 @@ class GymClassSeeder extends Seeder
             $start   = $day->copy()->setTime($timeSlots[$slotIdx][0], $timeSlots[$slotIdx][1]);
             $end     = $start->copy()->addMinutes(60 + (($i % 3) * 15)); // 60-90 menit
 
-            $statusOptions = ['Scheduled', 'Scheduled', 'Scheduled', 'Done', 'Cancelled'];
-            $status        = $statusOptions[$i % count($statusOptions)];
+            $status = $start->isFuture()
+                ? 'Scheduled'
+                : 'Done';
 
             $classes[] = [
                 'title'       => $types[$i % count($types)] . ' Session #' . ($i + 1),
