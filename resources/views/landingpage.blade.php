@@ -3,6 +3,7 @@
   $brandName = $appSettings['branding_name'] ?? 'GymFlow';
   $brandColor = $appSettings['branding_color'] ?? '#FC7753';
   $tagline = $appSettings['branding_tagline'] ?? 'Kelola gym, jadwal, dan pembayaran dengan satu dashboard.';
+  $contactEmail = $appSettings['branding_email'] ?? 'info@gymflow.id';
   $basicPrice = isset($appSettings['billing_basic_price']) ? number_format($appSettings['billing_basic_price'], 0, ',', '.') : '150.000';
   $premiumPrice = isset($appSettings['billing_premium_price']) ? number_format($appSettings['billing_premium_price'], 0, ',', '.') : '300.000';
   $brandLogo = $brandLogo ?? null;
@@ -517,8 +518,41 @@
       gap: 16px;
       align-items: center;
     }
-    .footer-links { display: flex; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
-    .footer-links a { padding: 6px 0; color: var(--muted); }
+    .footer-links { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+    .footer-links-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+    }
+    .footer-links-list a {
+      padding: 4px 0;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .footer-links-list a i { color: var(--brand); }
+    .footer-meta { margin-top: 8px; font-size: 0.9rem; color: #7b8495; }
+    .footer-actions { display: flex; justify-content: flex-end; align-items: center; }
+    .footer-actions .btn { padding: 10px 14px; }
+    .footer-contact { display: grid; gap: 8px; justify-items: start; align-content: start; }
+    .contact-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font-weight: 600;
+      width: fit-content;
+      box-shadow: var(--shadow-sm);
+    }
+    .contact-chip i { color: var(--brand); }
     @media (max-width: 1024px) and (min-width: 781px) {
       .hero-copy h1 { font-size: 2.6rem; }
       .section-head h2 { font-size: 2rem; }
@@ -590,11 +624,10 @@
         grid-template-columns: 1fr;
         text-align: center;
       }
-      .footer-links {
-        justify-content: center;
-        flex-direction: column;
-        gap: 8px;
-      }
+      .footer-contact { justify-items: center; }
+      .footer-links { align-items: center; }
+      .footer-links-list { text-align: center; justify-content: center; }
+      .footer-actions { justify-content: center; }
     }
 
     @media (max-width: 480px) {
@@ -888,14 +921,33 @@
 
     <footer class="footer">
       <div class="container footer-grid">
-        <div>
+        <div class="footer-brand">
           <div class="brand-name">{{ $brandName }}</div>
           <p>Tempat latihan yang rapi, modern, dan siap menemani progresmu.</p>
+          <div class="footer-meta">&copy; {{ date('Y') }} {{ $brandName }}</div>
         </div>
         <div class="footer-links">
-          <a href="#classes">Kelas</a>
-          <a href="#pricing">Membership</a>
-          <a href="{{ route('login') }}">Masuk / Daftar</a>
+          <h4>Tautan Cepat</h4>
+          <ul class="footer-links-list">
+            <li><a href="#home"><i class="bi bi-arrow-right-circle"></i>Beranda</a></li>
+            <li><a href="#features"><i class="bi bi-arrow-right-circle"></i>Keunggulan</a></li>
+            <li><a href="#classes"><i class="bi bi-arrow-right-circle"></i>Kelas</a></li>
+            <li><a href="#facilities"><i class="bi bi-arrow-right-circle"></i>Fasilitas</a></li>
+            <li><a href="#pricing"><i class="bi bi-arrow-right-circle"></i>Membership</a></li>
+            <li><a href="{{ route('login') }}"><i class="bi bi-arrow-right-circle"></i>Masuk / Daftar</a></li>
+          </ul>
+        </div>
+        <div class="footer-contact">
+          <h4>Hubungi Kami</h4>
+          <p>Kami siap membantu lewat email.</p>
+          <a class="contact-chip" href="mailto:{{ $contactEmail }}">
+            <i class="bi bi-envelope"></i>
+            <span>{{ $contactEmail }}</span>
+          </a>
+        </div>
+        <div class="footer-actions">
+          <a class="btn soft" href="#home"><i class="bi bi-arrow-up-circle"></i> Kembali ke atas</a>
+          <a class="btn primary" href="{{ route('login') }}">Masuk / Daftar</a>
         </div>
       </div>
     </footer>
