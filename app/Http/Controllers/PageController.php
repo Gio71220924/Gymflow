@@ -30,30 +30,34 @@ class PageController extends Controller
 
     public function landing()
     {
-        $today = Carbon::today();
+        $tzEnv = env('APP_TIMEZONE');
+        $timezone = $tzEnv ?: (config('app.timezone') !== 'UTC' ? config('app.timezone') : 'Asia/Jakarta');
+        $now = Carbon::now($timezone);
+        $todayDate = $now->toDateString();
+        $startOfDay = $now->copy()->startOfDay();
 
-        $baseQuery = DB::table('gym_classes as gc')
-            ->select('gc.id', 'gc.title', 'gc.location', 'gc.start_at', 'gc.end_at', 'gc.capacity', 'gc.status')
-            ->selectSub(function ($query) {
-                $query->from('class_bookings as cb')
-                    ->whereColumn('cb.class_id', 'gc.id')
-                    ->whereIn('cb.status', ['booked', 'attended', 'no_show'])
-                    ->selectRaw('COUNT(*)');
-            }, 'booked_count')
+        $baseQuery = GymClass::query()
+            ->select('id', 'title', 'location', 'start_at', 'end_at', 'capacity', 'status')
+            ->withCount(['bookings as booked_count' => function ($query) {
+                $query->whereIn('status', ['booked', 'attended', 'no_show']);
+            }])
             ->where(function ($query) {
-                $query->whereNull('gc.status')->orWhere('gc.status', '!=', 'Cancelled');
+                $query->whereNull('status')->orWhere('status', '!=', 'Cancelled');
             })
-            ->orderBy('gc.start_at');
+            ->orderBy('start_at');
 
-        $todayClasses = (clone $baseQuery)
-            ->whereDate('gc.start_at', $today)
-            ->limit(8)
+        // Realtime classes for today (respect timezone), max 10 entries
+        $gymClasses = (clone $baseQuery)
+            ->whereDate('start_at', $todayDate)
+            ->where('start_at', '>=', $startOfDay)
+            ->limit(10)
             ->get();
 
-        if ($todayClasses->isEmpty()) {
-            $todayClasses = (clone $baseQuery)
-                ->where('gc.start_at', '>=', $today->copy()->startOfDay())
-                ->limit(8)
+        // Fallback to upcoming classes if today is empty
+        if ($gymClasses->isEmpty()) {
+            $gymClasses = (clone $baseQuery)
+                ->where('start_at', '>=', $now)
+                ->limit(10)
                 ->get();
         }
 
@@ -64,8 +68,9 @@ class PageController extends Controller
 
         return view('landingpage', [
             'key'          => 'landingpage',
-            'todayClasses' => $todayClasses,
+            'gymClasses'   => $gymClasses,
             'brandLogo'    => $brandLogo,
+            'timezone'     => $timezone,
         ]);
     }
     
