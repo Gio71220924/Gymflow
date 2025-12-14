@@ -29,7 +29,7 @@ class PageController extends Controller
         view()->share('appSettings', $this->appSettings);
     }
 
-    public function landing()
+    public function landing(Request $request)
     {
         $tzEnv = env('APP_TIMEZONE');
         $timezone = $tzEnv ?: (config('app.timezone') !== 'UTC' ? config('app.timezone') : 'Asia/Jakarta');
@@ -37,29 +37,74 @@ class PageController extends Controller
         $todayDate = $now->toDateString();
         $startOfDay = $now->copy()->startOfDay();
 
-        $baseQuery = GymClass::query()
-            ->select('id', 'title', 'location', 'start_at', 'end_at', 'capacity', 'status')
-            ->withCount(['bookings as booked_count' => function ($query) {
-                $query->whereIn('status', ['booked', 'attended', 'no_show']);
-            }])
+        $searchDateInput = $request->query('date');
+        $searchDate = $searchDateInput ? Carbon::parse($searchDateInput, $timezone) : $now;
+        $q = trim($request->query('q', ''));
+
+        $baseQuery = DB::table('gym_classes as gc')
+            ->select('gc.id', 'gc.title', 'gc.location', 'gc.start_at', 'gc.end_at', 'gc.capacity', 'gc.status')
+            ->selectSub(function ($query) {
+                $query->from('class_bookings as cb')
+                    ->whereColumn('cb.class_id', 'gc.id')
+                    ->whereIn('cb.status', ['booked', 'attended', 'no_show'])
+                    ->selectRaw('COUNT(*)');
+            }, 'booked_count')
+            ->selectSub(function ($query) {
+                $query->from('class_trainers as ct')
+                    ->join('trainers as t', 't.id', '=', 'ct.trainer_id')
+                    ->whereColumn('ct.class_id', 'gc.id')
+                    ->selectRaw("GROUP_CONCAT(t.name ORDER BY ct.role SEPARATOR ', ')");
+            }, 'trainer_names')
             ->where(function ($query) {
-                $query->whereNull('status')->orWhere('status', '!=', 'Cancelled');
-            })
-            ->orderBy('start_at');
+                $query->whereNull('gc.status')->orWhere('gc.status', '!=', 'Cancelled');
+            });
 
-        // Realtime classes for today (respect timezone), max 10 entries
-        $gymClasses = (clone $baseQuery)
-            ->whereDate('start_at', $todayDate)
-            ->where('start_at', '>=', $startOfDay)
-            ->limit(10)
-            ->get();
+        $applySearch = function ($query) use ($q) {
+            if ($q === '') {
+                return;
+            }
+            $query->where(function ($sub) use ($q) {
+                $like = '%' . $q . '%';
+                $sub->where('gc.title', 'like', $like)
+                    ->orWhere('gc.location', 'like', $like)
+                    ->orWhere('gc.status', 'like', $like)
+                    ->orWhereRaw("EXISTS (
+                        SELECT 1 FROM class_trainers ct
+                        JOIN trainers t ON t.id = ct.trainer_id
+                        WHERE ct.class_id = gc.id AND t.name LIKE ?
+                    )", [$like]);
+            });
+        };
 
-        // Fallback to upcoming classes if today is empty
-        if ($gymClasses->isEmpty()) {
+        if ($searchDateInput) {
             $gymClasses = (clone $baseQuery)
-                ->where('start_at', '>=', $now)
+                ->when($searchDate, function ($query) use ($searchDate, $todayDate, $startOfDay) {
+                    $query->whereDate('gc.start_at', $searchDate->toDateString());
+                    if ($searchDate->toDateString() === $todayDate) {
+                        $query->where('gc.start_at', '>=', $startOfDay);
+                    }
+                })
+                ->tap($applySearch)
+                ->orderBy('gc.start_at')
+                ->limit(20)
+                ->get();
+        } else {
+            $gymClasses = (clone $baseQuery)
+                ->whereDate('gc.start_at', $todayDate)
+                ->where('gc.start_at', '>=', $startOfDay)
+                ->tap($applySearch)
+                ->orderBy('gc.start_at')
                 ->limit(10)
                 ->get();
+
+            if ($gymClasses->isEmpty()) {
+                $gymClasses = (clone $baseQuery)
+                    ->where('gc.start_at', '>=', $now)
+                    ->tap($applySearch)
+                    ->orderBy('gc.start_at')
+                    ->limit(10)
+                    ->get();
+            }
         }
 
         $brandingFiles = Storage::disk('public')->files('branding');
@@ -72,6 +117,8 @@ class PageController extends Controller
             'gymClasses'   => $gymClasses,
             'brandLogo'    => $brandLogo,
             'timezone'     => $timezone,
+            'searchDate'   => $searchDate->toDateString(),
+            'searchQuery'  => $q,
         ]);
     }
     

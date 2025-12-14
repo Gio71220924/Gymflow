@@ -14,6 +14,9 @@
   $statClasses = $appSettings['landing_stat_classes'] ?? '30+';
   $statCheckinSpeed = $appSettings['landing_stat_checkin'] ?? '< 20 dtk';
   $today = Carbon::now($timezone);
+  $searchDate = $searchDate ?? $today->toDateString();
+  $searchQuery = $searchQuery ?? '';
+  $searchDateCarbon = Carbon::parse($searchDate, $timezone);
   $preparedClasses = $liveClasses->map(function ($class) use ($timezone) {
     $start = Carbon::parse($class->start_at)->timezone($timezone);
     $end   = $class->end_at ? Carbon::parse($class->end_at)->timezone($timezone) : null;
@@ -56,10 +59,11 @@
       'timeRange' => $end ? $start->format('H:i') . ' - ' . $end->format('H:i') : $start->format('H:i'),
       'location' => $class->location ?: 'Lokasi menyusul',
       'title' => $class->title,
+      'trainerNames' => $class->trainer_names ?? '',
     ];
-  });
-  $todayClasses = $preparedClasses->filter(function ($class) use ($today) {
-    return $class['start']->isSameDay($today);
+  })->values();
+  $filteredClasses = $preparedClasses->filter(function ($class) use ($searchDateCarbon) {
+    return $class['start']->isSameDay($searchDateCarbon);
   })->values();
 @endphp
 <!doctype html>
@@ -244,43 +248,60 @@
             <h2>Kelas favorit untuk semua level</h2>
             <p>Jadwal berganti setiap minggu. Pilih sesi pagi, siang, atau malam sesuai waktu kamu.</p>
           </div>
-          @if($todayClasses->isEmpty())
-            <div class="class-grid class-grid-fixed">
-              <div class="class-card">
-                <h3>Belum ada jadwal hari ini</h3>
-                <p>Kelas akan tampil otomatis jika ada sesi di tanggal {{ $today->format('d M') }}.</p>
-                <a class="btn join-btn full" href="{{ route('login') }}">Masuk untuk update</a>
+          <form class="class-search" id="classes-search" method="GET" action="{{ route('landingpage') }}#classes-search">
+            <div class="class-search-grid">
+              <div class="form-group mb-0">
+                <label class="eyebrow mb-1">Tanggal</label>
+                <input type="date" name="date" value="{{ $searchDate }}" min="{{ $today->toDateString() }}" class="form-control form-control-sm class-search-input">
+              </div>
+              <div class="form-group mb-0">
+                <label class="eyebrow mb-1">Cari</label>
+                <input type="text" name="q" value="{{ $searchQuery }}" class="form-control form-control-sm class-search-input" placeholder="Judul, lokasi, instruktur">
+              </div>
+              <div class="form-group mb-0 align-self-end">
+                <div class="class-search-actions">
+                  <button type="submit" class="btn primary search-btn">Cari jadwal</button>
+                  <a class="btn soft search-btn" href="{{ route('landingpage') }}#classes-search">Reset</a>
+                </div>
               </div>
             </div>
-          @else
-            @foreach($todayClasses->chunk(4) as $classChunk)
-              <div class="class-grid class-grid-fixed">
-                @foreach($classChunk as $class)
-                  <div class="class-card">
-                    <div class="class-meta">
-                      <span class="pill mini soft">{{ $class['dateLabel'] }}</span>
-                      <span class="class-cap"><i class="bi bi-people"></i>{{ $class['capacity'] > 0 ? $class['capacity'] . ' kursi' : 'Tanpa batas' }}</span>
-                    </div>
-                    <h3>{{ $class['title'] }}</h3>
-                    <p>{{ $class['location'] }}</p>
-                    <div class="class-meta">
-                      <span><i class="bi bi-clock"></i> {{ $class['timeRange'] }}</span>
-                      <span><i class="bi bi-geo-alt"></i> {{ $class['location'] }}</span>
-                    </div>
-                    <div class="class-meta">
-                      @if($class['capacity'] > 0)
-                        <span class="badge {{ $class['isFull'] ? 'danger' : 'success' }}">{{ $class['isFull'] ? 'Penuh' : 'Sisa ' . $class['slotsLeft'] . ' slot' }}</span>
-                      @else
-                        <span class="badge info">Slot fleksibel</span>
-                      @endif
-                      <span class="muted">{{ $class['booked'] }} terdaftar - {{ $class['statusLabel'] }}</span>
-                    </div>
-                    <a class="btn join-btn full" href="{{ route('login') }}">Bergabung</a>
-                  </div>
-                @endforeach
+            <div class="text-muted small mt-2">Hasil untuk {{ $searchDateCarbon->format('d M Y') }} ({{ $filteredClasses->count() }} kelas)</div>
+          </form>
+
+          <div class="class-grid">
+            @forelse($filteredClasses as $class)
+              <div class="class-card">
+                <div class="class-meta">
+                  <span class="pill mini soft">{{ $class['dateLabel'] }}</span>
+                  <span class="class-cap"><i class="bi bi-people"></i>{{ $class['capacity'] > 0 ? $class['capacity'] . ' kursi' : 'Tanpa batas' }}</span>
+                </div>
+                <h3>{{ $class['title'] }}</h3>
+                <p>{{ $class['location'] }}</p>
+                @if(!empty($class['trainerNames']))
+                  <div class="text-muted small mb-1">Instruktur: {{ $class['trainerNames'] }}</div>
+                @endif
+                <div class="class-meta">
+                  <span><i class="bi bi-clock"></i> {{ $class['timeRange'] }}</span>
+                  <span><i class="bi bi-geo-alt"></i> {{ $class['location'] }}</span>
+                </div>
+                <div class="class-meta">
+                  @if($class['capacity'] > 0)
+                    <span class="badge {{ $class['isFull'] ? 'danger' : 'success' }}">{{ $class['isFull'] ? 'Penuh' : 'Sisa ' . $class['slotsLeft'] . ' slot' }}</span>
+                  @else
+                    <span class="badge info">Slot fleksibel</span>
+                  @endif
+                  <span class="muted">{{ $class['booked'] }} terdaftar - {{ $class['statusLabel'] }}</span>
+                </div>
+                <a class="btn join-btn full" href="{{ route('login') }}">Bergabung</a>
               </div>
-            @endforeach
-          @endif
+            @empty
+              <div class="class-card">
+                <h3>Belum ada jadwal</h3>
+                <p>Tidak ditemukan kelas untuk tanggal {{ $searchDateCarbon->format('d M') }}. Coba tanggal lain atau hapus pencarian.</p>
+                <a class="btn join-btn full" href="#classes">Reset pencarian</a>
+              </div>
+            @endforelse
+          </div>
         </div>
       </section>
 
