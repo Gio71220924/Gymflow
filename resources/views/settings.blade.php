@@ -3,14 +3,6 @@
 @section('page_heading', 'Settings')
 @section('card_title', 'Konfigurasi Gym')
 
-@section('styles')
-<style>
-  .nav-pills .nav-link { border-radius: 10px; }
-  .section-card { border:1px solid #e5e5e5; border-radius: 12px; padding: 20px; background: #fff; }
-  .form-help { color: #6c757d; font-size: 12px; }
-</style>
-@endsection
-
 @section('content')
   <ul class="nav nav-pills mb-3" id="settingsTab" role="tablist">
     <li class="nav-item" role="presentation">

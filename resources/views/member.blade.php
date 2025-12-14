@@ -5,29 +5,6 @@
 @section('page_heading', 'Member Management')
 @section('card_title', 'Daftar Member Gym')
 
-@section('styles')
-<style>
-  .btn-orange{
-    background-color:#FC7753;
-    border-color:#FC7753;
-    color:#fff;
-  }
-  .btn-orange:hover{
-    background-color:#e96a49;
-    border-color:#e05f3f;
-    color:#fff;
-  }
-  .btn-orange:focus, .btn-orange:active{
-    background-color:#e05f3f !important;
-    border-color:#d85738 !important;
-    color:#fff !important;
-    box-shadow:0 0 0 .2rem rgba(252,119,83,.35);
-  }
-  /* Jaga tabel lebar supaya tidak bablas; scroll horizontal tersedia di container */
-  #membergym { min-width: 1200px; }
-</style>
-@endsection
-
 @section('card_actions')
   <a href="/member/add-member" class="btn btn-orange btn-sm">
     <i class="bi bi-plus-circle-fill"></i> Tambah Member

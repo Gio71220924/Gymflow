@@ -5,23 +5,6 @@
 @section('page_heading', 'Billing & Invoices')
 @section('card_title', 'Daftar Invoice & Pembayaran')
 
-@section('styles')
-<style>
-  .badge-soft {
-    font-weight: 600;
-    padding: 0.4rem 0.65rem;
-    border-radius: 10px;
-  }
-  .badge-soft.lunas { background: #e6f4ea; color: #1b8a3d; }
-  .badge-soft.menunggu { background: #fff4e5; color: #b45d00; }
-  .badge-soft.draft { background: #eef2f7; color: #4b5563; }
-  .badge-soft.batal { background: #fdecec; color: #b91c1c; }
-  .badge-soft.pending { background: #fff4e5; color: #b45d00; }
-  .badge-soft.berhasil { background: #e6f4ea; color: #1b8a3d; }
-  .badge-soft.gagal { background: #fdecec; color: #b91c1c; }
-</style>
-@endsection
-
 @section('content')
   @php
     $brandingLogo = $appSettings['branding_logo'] ?? null;

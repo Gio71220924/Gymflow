@@ -9,46 +9,7 @@
         href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
         crossorigin="anonymous">
-  <style>
-    body { background: #f8f9fa; }
-    .invoice-card {
-      max-width: 820px;
-      margin: 30px auto;
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-      padding: 32px;
-    }
-    .invoice-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-    .title {
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-    .badge-soft {
-      font-weight: 600;
-      padding: 0.3rem 0.75rem;
-      border-radius: 10px;
-    }
-    .badge-soft.lunas { background: #e6f4ea; color: #1b8a3d; }
-    .badge-soft.menunggu { background: #fff4e5; color: #b45d00; }
-    .badge-soft.draft { background: #eef2f7; color: #4b5563; }
-    .badge-soft.batal { background: #fdecec; color: #b91c1c; }
-    .table-borderless td {
-      padding: 0.35rem 0;
-      border: none;
-    }
-    @media print {
-      .no-print { display: none !important; }
-      body { background: #fff; }
-      .invoice-card { box-shadow: none; border: 1px solid #ccc; }
-    }
-  </style>
+  <link rel="stylesheet" href="{{ asset('css/invoice-print.css') }}">
 </head>
 <body>
   <div class="invoice-card">

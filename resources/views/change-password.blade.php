@@ -98,22 +98,3 @@
   </div>
 </div>
 @endsection
-
-@section('styles')
-<style>
-  .form-control:focus {
-    border-color: var(--brand-primary);
-    box-shadow: 0 0 0 0.2rem rgba(252, 119, 83, 0.25);
-  }
-  
-  .btn-primary {
-    background-color: var(--brand-primary);
-    border-color: var(--brand-primary);
-  }
-  
-  .btn-primary:hover {
-    background-color: #e96643;
-    border-color: #e96643;
-  }
-</style>
-@endsection
