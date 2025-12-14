@@ -61,7 +61,7 @@
       'timeRange' => $end ? $start->format('H:i') . ' - ' . $end->format('H:i') : $start->format('H:i'),
       'location' => $class->location ?: 'Lokasi menyusul',
       'title' => $class->title,
-      'trainerNames' => $class->trainer_names ?? '',
+      'trainerNames' => $class->trainer_name ?? '',
       'photo' => $photoUrl,
     ];
   })->values();

@@ -19,12 +19,18 @@ class GymClass extends Model
         'type',
         'photo',
         'status',
+        'trainer_id',
     ];
 
     protected $casts = [
         'start_at' => 'datetime',
         'end_at'   => 'datetime',
     ];
+
+    public function trainer()
+    {
+        return $this->belongsTo(Trainer::class, 'trainer_id');
+    }
 
     public function bookings()
     {

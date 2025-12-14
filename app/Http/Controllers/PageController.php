@@ -42,19 +42,14 @@ class PageController extends Controller
         $q = trim($request->query('q', ''));
 
         $baseQuery = DB::table('gym_classes as gc')
-            ->select('gc.id', 'gc.title', 'gc.location', 'gc.start_at', 'gc.end_at', 'gc.capacity', 'gc.status', 'gc.photo')
+            ->leftJoin('trainers as t', 't.id', '=', 'gc.trainer_id')
+            ->select('gc.id', 'gc.title', 'gc.location', 'gc.start_at', 'gc.end_at', 'gc.capacity', 'gc.status', 'gc.photo', 't.name as trainer_name')
             ->selectSub(function ($query) {
                 $query->from('class_bookings as cb')
                     ->whereColumn('cb.class_id', 'gc.id')
                     ->whereIn('cb.status', ['booked', 'attended', 'no_show'])
                     ->selectRaw('COUNT(*)');
             }, 'booked_count')
-            ->selectSub(function ($query) {
-                $query->from('class_trainers as ct')
-                    ->join('trainers as t', 't.id', '=', 'ct.trainer_id')
-                    ->whereColumn('ct.class_id', 'gc.id')
-                    ->selectRaw("GROUP_CONCAT(t.name ORDER BY ct.role SEPARATOR ', ')");
-            }, 'trainer_names')
             ->where(function ($query) {
                 $query->whereNull('gc.status')->orWhere('gc.status', '!=', 'Cancelled');
             });
@@ -68,11 +63,7 @@ class PageController extends Controller
                 $sub->where('gc.title', 'like', $like)
                     ->orWhere('gc.location', 'like', $like)
                     ->orWhere('gc.status', 'like', $like)
-                    ->orWhereRaw("EXISTS (
-                        SELECT 1 FROM class_trainers ct
-                        JOIN trainers t ON t.id = ct.trainer_id
-                        WHERE ct.class_id = gc.id AND t.name LIKE ?
-                    )", [$like]);
+                    ->orWhere('t.name', 'like', $like);
             });
         };
 
@@ -301,7 +292,8 @@ class PageController extends Controller
         }
 
         $classes = DB::table('gym_classes as gc')
-            ->select('gc.*')
+            ->leftJoin('trainers as t', 't.id', '=', 'gc.trainer_id')
+            ->select('gc.*', 't.name as trainer_name')
             ->selectSub(function ($query) {
                 $query->from('class_bookings as cb')
                     ->whereColumn('cb.class_id', 'gc.id')
@@ -320,22 +312,12 @@ class PageController extends Controller
             }, function ($query) {
                 $query->selectRaw('NULL as user_booking_status');
             })
-            ->selectSub(function ($query) {
-                $query->from('class_trainers as ct')
-                    ->join('trainers as t', 't.id', '=', 'ct.trainer_id')
-                    ->whereColumn('ct.class_id', 'gc.id')
-                    ->selectRaw("GROUP_CONCAT(t.name ORDER BY ct.role SEPARATOR ', ')");
-            }, 'trainer_names')
             ->when($q, function ($query, $q) {
                 $query->where(function ($sub) use ($q) {
                     $sub->where('gc.title', 'like', '%' . $q . '%')
                         ->orWhere('gc.location', 'like', '%' . $q . '%')
                         ->orWhere('gc.status', 'like', '%' . $q . '%')
-                        ->orWhereRaw("EXISTS (
-                            SELECT 1 FROM class_trainers AS ct
-                            JOIN trainers AS t ON t.id = ct.trainer_id
-                            WHERE ct.class_id = gc.id AND t.name LIKE ?
-                        )", ['%' . $q . '%']);
+                        ->orWhere('t.name', 'like', '%' . $q . '%');
                 });
             })
             ->when($sort === 'terlama', function ($query) {
@@ -435,16 +417,18 @@ class PageController extends Controller
     {
         $this->ensureSuperAdmin($request);
         $payload = $this->validateClassPayload($request);
-        $trainerIds = $payload['trainer_ids'] ?? [];
-        unset($payload['trainer_ids']);
+        
         unset($payload['photo']);
+
+        // Fix format date
+        $payload['start_at'] = Carbon::parse($payload['start_at']);
+        $payload['end_at']   = Carbon::parse($payload['end_at']);
 
         if ($request->hasFile('photo')) {
             $payload['photo'] = $request->file('photo')->store('class_photos', 'public');
         }
 
-        $class = GymClass::create($payload);
-        $this->syncClassTrainers($class, $trainerIds);
+        GymClass::create($payload);
 
         return redirect()->route('class')->with('success', 'Kelas berhasil dibuat.');
     }
@@ -454,10 +438,7 @@ class PageController extends Controller
         $this->ensureSuperAdmin($request);
 
         $class = GymClass::findOrFail($id);
-        $selectedTrainerIds = DB::table('class_trainers')
-            ->where('class_id', $id)
-            ->pluck('trainer_id')
-            ->toArray();
+        $selectedTrainerIds = $class->trainer_id ? [$class->trainer_id] : [];
 
         return view('class-form', [
             'key'                => 'class',
@@ -474,9 +455,12 @@ class PageController extends Controller
         $class = GymClass::findOrFail($id);
 
         $payload = $this->validateClassPayload($request);
-        $trainerIds = $payload['trainer_ids'] ?? [];
-        unset($payload['trainer_ids']);
+        
         unset($payload['photo']);
+
+        // Fix format date
+        $payload['start_at'] = Carbon::parse($payload['start_at']);
+        $payload['end_at']   = Carbon::parse($payload['end_at']);
 
         if ($request->hasFile('photo')) {
             $newPath = $request->file('photo')->store('class_photos', 'public');
@@ -495,7 +479,6 @@ class PageController extends Controller
         }
 
         $class->update($payload);
-        $this->syncClassTrainers($class, $trainerIds);
 
         return redirect()->route('class')->with('success', 'Kelas berhasil diperbarui.');
     }
@@ -1430,30 +1413,11 @@ class PageController extends Controller
             'type'         => 'nullable|string|max:100',
             'status'       => 'required|in:Scheduled,Cancelled,Done',
             'photo'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'trainer_ids'  => 'nullable|array',
-            'trainer_ids.*'=> 'integer|exists:trainers,id',
+            'trainer_id'   => 'nullable|integer|exists:trainers,id',
         ]);
     }
 
-    private function syncClassTrainers(GymClass $class, array $trainerIds)
-    {
-        DB::table('class_trainers')->where('class_id', $class->id)->delete();
 
-        if (empty($trainerIds)) {
-            return;
-        }
-
-        $rows = [];
-        foreach ($trainerIds as $tid) {
-            $rows[] = [
-                'class_id'   => $class->id,
-                'trainer_id' => $tid,
-                'role'       => 'lead',
-            ];
-        }
-
-        DB::table('class_trainers')->insert($rows);
-    }
 
     private function getTrainerOptions()
     {

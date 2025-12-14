@@ -21,7 +21,9 @@
         $class = $classData ?? null;
         $startValue = old('start_at', $class ? \Carbon\Carbon::parse($class->start_at)->format('Y-m-d\\TH:i') : '');
         $endValue = old('end_at', $class ? \Carbon\Carbon::parse($class->end_at)->format('Y-m-d\\TH:i') : '');
-        $selected = old('trainer_ids', $selectedTrainerIds ?? []);
+        
+        // Single trainer selection logic
+        $selectedTrainerId = old('trainer_id', isset($selectedTrainerIds) && !empty($selectedTrainerIds) ? $selectedTrainerIds[0] : null);
       @endphp
 
       <form method="POST" action="{{ ($mode ?? 'create') === 'edit' ? route('class.update', $class->id) : route('class.store') }}" enctype="multipart/form-data">
@@ -89,13 +91,14 @@
             @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
           </div>
           <div class="form-group col-md-4">
-            <label for="trainer_ids">Instruktur (opsional)</label>
-            <select name="trainer_ids[]" id="trainer_ids" class="form-control @error('trainer_ids') is-invalid @enderror" multiple>
+            <label for="trainer_id">Instruktur (opsional)</label>
+            <select name="trainer_id" id="trainer_id" class="form-control @error('trainer_id') is-invalid @enderror">
+              <option value="">-- Pilih Instruktur --</option>
               @foreach($trainers as $trainer)
-                <option value="{{ $trainer->id }}" {{ in_array($trainer->id, $selected) ? 'selected' : '' }}>{{ $trainer->name }}</option>
+                <option value="{{ $trainer->id }}" {{ $selectedTrainerId == $trainer->id ? 'selected' : '' }}>{{ $trainer->name }}</option>
               @endforeach
             </select>
-            @error('trainer_ids') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            @error('trainer_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
           </div>
         </div>
 

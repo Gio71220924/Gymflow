@@ -278,17 +278,21 @@
               @endphp
               <tr>
                 <td>
-                  @if(!empty($class->photo))
-                    <div class="mb-2">
-                      <img src="{{ asset('storage/' . $class->photo) }}" alt="{{ $class->title }}" style="height:60px; width:100px; object-fit:cover; border-radius:6px; border:1px solid #e9ecef;">
+                  <div class="d-flex align-items-center">
+                    @if(!empty($class->photo))
+                      <div class="flex-shrink-0 mr-3" style="height:40px; width:60px; border-radius:6px; overflow:hidden; border:1px solid #e9ecef;">
+                        <img src="{{ asset('storage/' . $class->photo) }}" alt="{{ $class->title }}" style="width:100%; height:100%; object-fit:cover;">
+                      </div>
+                    @endif
+                    <div>
+                      <div class="font-weight-bold">{{ $class->title }}</div>
+                      @if(!empty($class->location))
+                        <div class="text-muted small">{{ $class->location }}</div>
+                      @endif
                     </div>
-                  @endif
-                  <div class="font-weight-bold">{{ $class->title }}</div>
-                  @if(!empty($class->location))
-                    <div class="text-muted small">{{ $class->location }}</div>
-                  @endif
+                  </div>
                 </td>
-                <td>{{ $class->trainer_names ?? 'Belum ada instruktur' }}</td>
+                <td>{{ $class->trainer_name ?? 'Belum ada instruktur' }}</td>
                 <td>{{ $start->format('Y-m-d') }}</td>
                 <td>{{ $start->format('H:i') }} - {{ $end->format('H:i') }}</td>
                 <td>
