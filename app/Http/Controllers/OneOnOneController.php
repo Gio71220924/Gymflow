@@ -43,6 +43,15 @@ class OneOnOneController extends Controller
             'note'            => 'nullable|string|max:1000',
         ]);
 
+        $timezone = env('APP_TIMEZONE') ?: (config('app.timezone') !== 'UTC' ? config('app.timezone') : 'Asia/Jakarta');
+        $requestedDateTime = Carbon::createFromFormat('Y-m-d H:i', $data['preferred_date'] . ' ' . $data['preferred_time'], $timezone);
+        $now = Carbon::now($timezone);
+        if ($requestedDateTime->lt($now)) {
+            return back()
+                ->withInput()
+                ->withErrors(['preferred_time' => 'Waktu harus setelah waktu sekarang.']);
+        }
+
         OneOnOneRequest::create([
             'member_id'      => $member->id,
             'trainer_id'     => $data['trainer_id'],
@@ -84,6 +93,54 @@ class OneOnOneController extends Controller
         $req->save();
 
         return back()->with('success', 'Permintaan one-on-one ditolak.');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = $request->user();
+        $req = OneOnOneRequest::findOrFail($id);
+        if (!$user || $user->role !== User::ROLE_USER || $req->member_id !== optional($user->memberGym)->id) {
+            abort(403, 'Tidak diizinkan.');
+        }
+        if ($req->status !== OneOnOneRequest::STATUS_PENDING) {
+            return back()->with('error', 'Pengajuan sudah diproses, tidak dapat diubah.');
+        }
+
+        $data = $request->validate([
+            'trainer_id'      => 'required|integer|exists:trainers,id',
+            'preferred_date'  => 'required|date|after_or_equal:today',
+            'preferred_time'  => 'required|date_format:H:i',
+            'location'        => 'required|string|max:255',
+        ]);
+
+        $timezone = env('APP_TIMEZONE') ?: (config('app.timezone') !== 'UTC' ? config('app.timezone') : 'Asia/Jakarta');
+        $requestedDateTime = Carbon::createFromFormat('Y-m-d H:i', $data['preferred_date'] . ' ' . $data['preferred_time'], $timezone);
+        $now = Carbon::now($timezone);
+        if ($requestedDateTime->lt($now)) {
+            return back()
+                ->withInput()
+                ->withErrors(['preferred_time' => 'Waktu harus setelah waktu sekarang.']);
+        }
+
+        $req->update($data);
+
+        return back()->with('success', 'Pengajuan one-on-one diperbarui.');
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $user = $request->user();
+        $req = OneOnOneRequest::findOrFail($id);
+        if (!$user || $user->role !== User::ROLE_USER || $req->member_id !== optional($user->memberGym)->id) {
+            abort(403, 'Tidak diizinkan.');
+        }
+        if ($req->status !== OneOnOneRequest::STATUS_PENDING) {
+            return back()->with('error', 'Pengajuan sudah diproses, tidak dapat dibatalkan.');
+        }
+
+        $req->delete();
+
+        return back()->with('success', 'Pengajuan one-on-one dibatalkan.');
     }
 
     private function ensureAdmin(Request $request)

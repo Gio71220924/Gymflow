@@ -79,12 +79,23 @@
 
       @if($isUser ?? false)
         <div class="collapse mb-3" id="oneononeForm">
-        <div class="card">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap:8px;">
-              <h6 class="mb-0">Form ajukan sesi one-on-one</h6>
-              <button class="btn btn-sm btn-light" type="button" data-toggle="collapse" data-target="#oneononeForm">Tutup</button>
-            </div>
+          <div class="card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap:8px;">
+                <h6 class="mb-0">Form ajukan sesi one-on-one</h6>
+                <button class="btn btn-sm btn-light" type="button" data-toggle="collapse" data-target="#oneononeForm">Tutup</button>
+              </div>
+              @if($errors->any())
+                <div class="alert alert-warning">Periksa input pengajuan: {{ $errors->first() }}</div>
+              @endif
+              @php
+                $locationOptions = [
+                  'Studio A',
+                  'Studio B',
+                  'Ruang privat',
+                  'Outdoor',
+                ];
+              @endphp
               <form action="{{ route('oneonone.store') }}" method="POST">
                 @csrf
                 <div class="form-row">
@@ -95,7 +106,7 @@
                   </div>
                   <div class="form-group col-md-4">
                     <label>Waktu</label>
-                    <input type="time" name="preferred_time" class="form-control @error('preferred_time') is-invalid @enderror" value="{{ old('preferred_time', '09:00') }}" min="06:00" max="22:00" required>
+                    <input type="time" name="preferred_time" class="form-control @error('preferred_time') is-invalid @enderror" value="{{ old('preferred_time', '09:00') }}" min="07:00" max="18:00" required>
                     @error('preferred_time') <div class="invalid-feedback">{{ $message }}</div> @enderror
                   </div>
                   <div class="form-group col-md-4">
@@ -116,15 +127,7 @@
                     <label>Tempat</label>
                     <select name="location" class="form-control @error('location') is-invalid @enderror" required>
                       <option value="">Pilih lokasi</option>
-                      @php
-                        $locationOptions = [
-                          'Studio A',
-                          'Studio B',
-                          'Ruang privat',
-                          'Outdoor',
-                        ];
-                        $selectedLoc = old('location');
-                      @endphp
+                      @php $selectedLoc = old('location'); @endphp
                       @foreach($locationOptions as $loc)
                         <option value="{{ $loc }}" {{ $selectedLoc === $loc ? 'selected' : '' }}>{{ $loc }}</option>
                       @endforeach
@@ -150,12 +153,15 @@
                         <th>Instruktur</th>
                         <th>Status</th>
                         <th>Catatan</th>
+                        <th>Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
                       @forelse($oneOnOneRequests as $req)
                         @php
                           $badgeClass = $req->status === 'approved' ? 'success' : ($req->status === 'rejected' ? 'danger' : 'warning');
+                          $isPending = $req->status === 'pending';
+                          $editId = 'edit-oor-' . $req->id;
                         @endphp
                         <tr>
                           <td>{{ \Carbon\Carbon::parse($req->preferred_date)->format('d M Y') }}<br><small class="text-muted">{{ $req->preferred_time }}</small></td>
@@ -167,18 +173,70 @@
                               <div class="text-muted small">Admin: {{ $req->admin_note }}</div>
                             @endif
                           </td>
+                          <td>
+                            @if($isPending)
+                              <button class="btn btn-link btn-sm px-0" type="button" data-toggle="collapse" data-target="#{{ $editId }}">Ubah</button>
+                              <form action="{{ route('oneonone.destroy', $req->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Batalkan pengajuan ini?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-link btn-sm text-danger px-0 ml-2">Batalkan</button>
+                              </form>
+                            @else
+                              <span class="text-muted small">Terkunci</span>
+                            @endif
+                          </td>
                         </tr>
+                        @if($isPending)
+                        <tr class="collapse" id="{{ $editId }}">
+                          <td colspan="5">
+                            <form action="{{ route('oneonone.update', $req->id) }}" method="POST">
+                              @csrf
+                              @method('PATCH')
+                              <div class="form-row">
+                                <div class="form-group col-md-3">
+                                  <label>Tanggal</label>
+                                  <input type="date" name="preferred_date" class="form-control form-control-sm" value="{{ old('preferred_date_'.$req->id, $req->preferred_date) }}" min="{{ now()->format('Y-m-d') }}" required>
+                                </div>
+                                <div class="form-group col-md-2">
+                                  <label>Waktu</label>
+                                  <input type="time" name="preferred_time" class="form-control form-control-sm" value="{{ old('preferred_time_'.$req->id, $req->preferred_time) }}" min="07:00" max="18:00" required>
+                                </div>
+                                <div class="form-group col-md-3">
+                                  <label>Tempat</label>
+                                  <select name="location" class="form-control form-control-sm" required>
+                                    @foreach($locationOptions as $loc)
+                                      <option value="{{ $loc }}" {{ (old('location_'.$req->id, $req->location) === $loc) ? 'selected' : '' }}>{{ $loc }}</option>
+                                    @endforeach
+                                  </select>
+                                </div>
+                                <div class="form-group col-md-2">
+                                  <label>Instruktur</label>
+                                  <select name="trainer_id" class="form-control form-control-sm" required>
+                                    @foreach($trainers as $trainer)
+                                      <option value="{{ $trainer->id }}" {{ (old('trainer_id_'.$req->id, $req->trainer_id) == $trainer->id) ? 'selected' : '' }}>{{ $trainer->name }}</option>
+                                    @endforeach
+                                  </select>
+                                </div>
+                                <div class="form-group col-md-2">
+                                  <label>&nbsp;</label>
+                                  <button type="submit" class="btn btn-primary btn-sm btn-block">Simpan</button>
+                                </div>
+                              </div>
+                            </form>
+                          </td>
+                        </tr>
+                        @endif
                       @empty
                         <tr>
-                          <td colspan="4" class="text-muted text-center">Belum ada pengajuan.</td>
+                          <td colspan="5" class="text-muted text-center">Belum ada pengajuan.</td>
                         </tr>
                       @endforelse
                     </tbody>
                   </table>
                 </div>
               </div>
+            </div>
           </div>
-        </div>
         </div>
       @endif
 

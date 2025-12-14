@@ -32,6 +32,8 @@ Route::group(['middleware' => ['auth','verified']], function () {
     Route::post('/one-on-one', [OneOnOneController::class, 'store'])->name('oneonone.store');
     Route::post('/one-on-one/{id}/approve', [OneOnOneController::class, 'approve'])->name('oneonone.approve');
     Route::post('/one-on-one/{id}/reject', [OneOnOneController::class, 'reject'])->name('oneonone.reject');
+    Route::patch('/one-on-one/{id}', [OneOnOneController::class, 'update'])->name('oneonone.update');
+    Route::delete('/one-on-one/{id}', [OneOnOneController::class, 'destroy'])->name('oneonone.destroy');
 
 
     // Billing
