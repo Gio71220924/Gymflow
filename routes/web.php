@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthentikasiController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\TrainerController;
+use App\Http\Controllers\OneOnOneController;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Verified;
 
@@ -26,6 +27,11 @@ Route::group(['middleware' => ['auth','verified']], function () {
     Route::get('/class/{id}/edit', [PageController::class, 'editClassForm'])->name('class.edit');
     Route::put('/class/{id}', [PageController::class, 'updateClass'])->name('class.update');
     Route::delete('/class/{id}', [PageController::class, 'deleteClass'])->name('class.destroy');
+
+    // One-on-One request
+    Route::post('/one-on-one', [OneOnOneController::class, 'store'])->name('oneonone.store');
+    Route::post('/one-on-one/{id}/approve', [OneOnOneController::class, 'approve'])->name('oneonone.approve');
+    Route::post('/one-on-one/{id}/reject', [OneOnOneController::class, 'reject'])->name('oneonone.reject');
 
 
     // Billing

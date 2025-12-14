@@ -12,6 +12,7 @@ use App\Payment;
 use App\AppSetting;
 use App\GymClass;
 use App\ClassBooking;
+use App\OneOnOneRequest;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -305,6 +306,9 @@ class PageController extends Controller
             ]);
 
         $participants = collect();
+        $oneOnOneRequests = collect();
+        $trainers = collect();
+
         if ($isAdmin) {
             $classIds = $classes->pluck('id');
             $participants = DB::table('class_bookings as cb')
@@ -314,6 +318,37 @@ class PageController extends Controller
                 ->orderBy('m.nama_member')
                 ->get()
                 ->groupBy('class_id');
+            $oneOnOneRequests = DB::table('one_on_one_requests as oor')
+                ->leftJoin('member_gym as m', 'm.id', '=', 'oor.member_id')
+                ->leftJoin('trainers as t', 't.id', '=', 'oor.trainer_id')
+                ->leftJoin('users as u', 'u.id', '=', 'oor.approved_by')
+                ->select(
+                    'oor.*',
+                    'm.nama_member',
+                    'm.email_member',
+                    't.name as trainer_name',
+                    'u.name as admin_name'
+                )
+                ->orderByRaw("FIELD(oor.status, 'pending', 'approved', 'rejected')")
+                ->orderBy('oor.created_at', 'desc')
+                ->limit(30)
+                ->get();
+        } elseif ($isUser && $memberId) {
+            $trainers = DB::table('trainers')
+                ->select('id', 'name')
+                ->where(function ($q) {
+                    $q->whereNull('status')->orWhere('status', 'active');
+                })
+                ->orderBy('name')
+                ->get();
+
+            $oneOnOneRequests = DB::table('one_on_one_requests as oor')
+                ->leftJoin('trainers as t', 't.id', '=', 'oor.trainer_id')
+                ->where('oor.member_id', $memberId)
+                ->select('oor.*', 't.name as trainer_name')
+                ->orderBy('oor.created_at', 'desc')
+                ->limit(10)
+                ->get();
         }
 
         return view('class', [
@@ -326,6 +361,8 @@ class PageController extends Controller
             'participants'=> $participants,
             'memberId'    => $memberId,
             'sort'        => $sort,
+            'oneOnOneRequests' => $oneOnOneRequests,
+            'trainers'         => $trainers,
         ]);
     }
 

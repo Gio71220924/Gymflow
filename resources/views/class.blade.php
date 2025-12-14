@@ -35,7 +35,7 @@
       {{-- Search bar method get --}}
       <form action="{{ route('class') }}" method="GET" class="mb-3">
         <div class="form-row align-items-center">
-          <div class="col-12 col-md-6 mb-2 mb-md-0">
+          <div class="col-12 col-md-6 col-lg-5 mb-2 mb-md-0">
             <input type="text" class="form-control" name="q" id="q"
                   placeholder="Cari: judul kelas/Nama instruktur/lokasi/Status"
                   value="{{ $searchQuery ?? '' }}">
@@ -58,9 +58,14 @@
             </select>
           </div>
 
-          <div class="col-auto">
-            <button type="submit" class="btn btn-primary">Search</button>
-            <a href="{{ route('class') }}" class="btn btn-light">Reset</a>
+          <div class="col-auto d-flex align-items-center flex-wrap" style="gap:8px; white-space: nowrap;">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+            <a href="{{ route('class') }}" class="btn btn-light btn-sm">Reset</a>
+            @if($isUser ?? false)
+              <button class="btn btn-outline-primary btn-sm" type="button" data-toggle="collapse" data-target="#oneononeForm" aria-expanded="false" aria-controls="oneononeForm">
+                Ajukan sesi one-on-one
+              </button>
+            @endif
           </div>
         </div>
 
@@ -71,6 +76,97 @@
         @endif
       </form>
 
+
+      @if($isUser ?? false)
+        <div class="collapse mb-3" id="oneononeForm">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap:8px;">
+              <h6 class="mb-0">Form ajukan sesi one-on-one</h6>
+              <button class="btn btn-sm btn-light" type="button" data-toggle="collapse" data-target="#oneononeForm">Tutup</button>
+            </div>
+              <form action="{{ route('oneonone.store') }}" method="POST">
+                @csrf
+                <div class="form-row">
+                  <div class="form-group col-md-4">
+                    <label>Tanggal</label>
+                    <input type="date" name="preferred_date" class="form-control @error('preferred_date') is-invalid @enderror" value="{{ old('preferred_date', now()->format('Y-m-d')) }}" required>
+                    @error('preferred_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label>Waktu</label>
+                    <input type="time" name="preferred_time" class="form-control @error('preferred_time') is-invalid @enderror" value="{{ old('preferred_time', '09:00') }}" required>
+                    @error('preferred_time') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label>Instruktur</label>
+                    <select name="trainer_id" class="form-control @error('trainer_id') is-invalid @enderror" required>
+                      <option value="">Pilih instruktur</option>
+                      @forelse($trainers as $trainer)
+                        <option value="{{ $trainer->id }}" {{ old('trainer_id') == $trainer->id ? 'selected' : '' }}>{{ $trainer->name }}</option>
+                      @empty
+                        <option value="" disabled>Belum ada instruktur aktif</option>
+                      @endforelse
+                    </select>
+                    @error('trainer_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label>Tempat</label>
+                    <input type="text" name="location" class="form-control @error('location') is-invalid @enderror" placeholder="Studio, ruang privat, atau lokasi lain" value="{{ old('location') }}" required>
+                    @error('location') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label>Catatan (opsional)</label>
+                    <textarea name="note" rows="2" class="form-control @error('note') is-invalid @enderror" placeholder="Tujuan latihan, fokus area, dll.">{{ old('note') }}</textarea>
+                    @error('note') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Ajukan sesi</button>
+              </form>
+
+              <div class="mt-3">
+                <h6 class="mb-2">Status pengajuan</h6>
+                <div class="table-responsive">
+                  <table class="table table-sm mb-0">
+                    <thead class="thead-light">
+                      <tr>
+                        <th>Tanggal</th>
+                        <th>Instruktur</th>
+                        <th>Status</th>
+                        <th>Catatan</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @forelse($oneOnOneRequests as $req)
+                        @php
+                          $badgeClass = $req->status === 'approved' ? 'success' : ($req->status === 'rejected' ? 'danger' : 'warning');
+                        @endphp
+                        <tr>
+                          <td>{{ \Carbon\Carbon::parse($req->preferred_date)->format('d M Y') }}<br><small class="text-muted">{{ $req->preferred_time }}</small></td>
+                          <td>{{ $req->trainer_name ?? '-' }}</td>
+                          <td><span class="badge badge-soft {{ $badgeClass }}">{{ ucfirst($req->status) }}</span></td>
+                          <td>
+                            <div class="text-truncate" style="max-width:180px;">{{ $req->note ?: '-' }}</div>
+                            @if(!empty($req->admin_note))
+                              <div class="text-muted small">Admin: {{ $req->admin_note }}</div>
+                            @endif
+                          </td>
+                        </tr>
+                      @empty
+                        <tr>
+                          <td colspan="4" class="text-muted text-center">Belum ada pengajuan.</td>
+                        </tr>
+                      @endforelse
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+          </div>
+        </div>
+        </div>
+      @endif
 
       <div class="table-responsive">
         <table class="table table-striped table-bordered table-hover w-100 mb-0">
@@ -204,6 +300,83 @@
             'q'        => $searchQuery ?? '',
             'per_page' => $perPage ?? 10,
           ])->links() }}
+        </div>
+      @endif
+
+      @if(($isAdmin ?? false) && isset($oneOnOneRequests))
+        <hr class="my-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Pengajuan sesi one-on-one</h5>
+          <span class="badge badge-light">Pending: {{ $oneOnOneRequests->where('status', 'pending')->count() }}</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead class="thead-light">
+              <tr>
+                <th>Member</th>
+                <th>Instruktur</th>
+                <th>Tanggal</th>
+                <th>Lokasi</th>
+                <th>Catatan</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($oneOnOneRequests as $req)
+                @php
+                  $badgeClass = $req->status === 'approved' ? 'success' : ($req->status === 'rejected' ? 'danger' : 'warning');
+                @endphp
+                <tr>
+                  <td>
+                    <div class="font-weight-bold">{{ $req->nama_member ?? '-' }}</div>
+                    <div class="text-muted small">{{ $req->email_member ?? '' }}</div>
+                  </td>
+                  <td>{{ $req->trainer_name ?? '-' }}</td>
+                  <td>
+                    {{ \Carbon\Carbon::parse($req->preferred_date)->format('d M Y') }}
+                    <div class="text-muted small">{{ $req->preferred_time }}</div>
+                  </td>
+                  <td>{{ $req->location }}</td>
+                  <td>
+                    <div class="text-truncate" style="max-width:200px;">{{ $req->note ?: '-' }}</div>
+                    @if($req->admin_note)
+                      <div class="text-muted small">Admin: {{ $req->admin_note }}</div>
+                    @endif
+                  </td>
+                  <td><span class="badge badge-soft {{ $badgeClass }}">{{ ucfirst($req->status) }}</span></td>
+                  <td>
+                    @if($req->status === 'pending')
+                      <form action="{{ route('oneonone.approve', $req->id) }}" method="POST" class="mb-1">
+                        @csrf
+                        <div class="input-group input-group-sm">
+                          <input type="text" name="admin_note" class="form-control" placeholder="Catatan (opsional)">
+                          <div class="input-group-append">
+                            <button class="btn btn-success" type="submit">ACC</button>
+                          </div>
+                        </div>
+                      </form>
+                      <form action="{{ route('oneonone.reject', $req->id) }}" method="POST">
+                        @csrf
+                        <div class="input-group input-group-sm">
+                          <input type="text" name="admin_note" class="form-control" placeholder="Catatan tolak (opsional)">
+                          <div class="input-group-append">
+                            <button class="btn btn-outline-danger" type="submit">Tolak</button>
+                          </div>
+                        </div>
+                      </form>
+                    @else
+                      <div class="text-muted small">Diproses oleh {{ $req->admin_name ?? '-' }}</div>
+                    @endif
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="7" class="text-center text-muted">Belum ada pengajuan one-on-one.</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
         </div>
       @endif
     </div>
