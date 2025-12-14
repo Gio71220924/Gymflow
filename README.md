@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://laravel.com/assets/img/components/logo-laravel.svg" width="400" alt="Gymflow Logo">
+  <img src="./public/storage/branding/1763951969-20251124_0601_Modern_Gym_Logo_simple_compose_01kasf5ffwfg2t237301c19tkj-removebg-preview.png" width="400" alt="Gymflow Logo">
 </p>
 
 <h1 align="center">Gymflow - Sistem Manajemen Gym</h1>
