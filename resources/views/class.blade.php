@@ -278,10 +278,10 @@
               @endphp
               <tr>
                 <td>
-                  <div class="d-flex align-items-center">
+                  <div class="d-flex align-items-center" style="min-width: 200px;">
                     @if(!empty($class->photo))
-                      <div class="flex-shrink-0 mr-3" style="height:40px; width:60px; border-radius:6px; overflow:hidden; border:1px solid #e9ecef;">
-                        <img src="{{ asset('storage/' . $class->photo) }}" alt="{{ $class->title }}" style="width:100%; height:100%; object-fit:cover;">
+                      <div class="flex-shrink-0 mr-3" style="height:60px; width:90px; border-radius:6px; overflow:hidden; border:1px solid #e9ecef; background-color: #f8f9fa;">
+                        <img src="{{ asset('storage/' . $class->photo) }}" alt="{{ $class->title }}" style="width:100%; height:100%; object-fit:contain;">
                       </div>
                     @endif
                     <div>
