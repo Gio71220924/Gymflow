@@ -90,12 +90,12 @@
                 <div class="form-row">
                   <div class="form-group col-md-4">
                     <label>Tanggal</label>
-                    <input type="date" name="preferred_date" class="form-control @error('preferred_date') is-invalid @enderror" value="{{ old('preferred_date', now()->format('Y-m-d')) }}" required>
+                    <input type="date" name="preferred_date" class="form-control @error('preferred_date') is-invalid @enderror" value="{{ old('preferred_date', now()->format('Y-m-d')) }}" min="{{ now()->format('Y-m-d') }}" required>
                     @error('preferred_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
                   </div>
                   <div class="form-group col-md-4">
                     <label>Waktu</label>
-                    <input type="time" name="preferred_time" class="form-control @error('preferred_time') is-invalid @enderror" value="{{ old('preferred_time', '09:00') }}" required>
+                    <input type="time" name="preferred_time" class="form-control @error('preferred_time') is-invalid @enderror" value="{{ old('preferred_time', '09:00') }}" min="06:00" max="22:00" required>
                     @error('preferred_time') <div class="invalid-feedback">{{ $message }}</div> @enderror
                   </div>
                   <div class="form-group col-md-4">
@@ -114,7 +114,21 @@
                 <div class="form-row">
                   <div class="form-group col-md-6">
                     <label>Tempat</label>
-                    <input type="text" name="location" class="form-control @error('location') is-invalid @enderror" placeholder="Studio, ruang privat, atau lokasi lain" value="{{ old('location') }}" required>
+                    <select name="location" class="form-control @error('location') is-invalid @enderror" required>
+                      <option value="">Pilih lokasi</option>
+                      @php
+                        $locationOptions = [
+                          'Studio A',
+                          'Studio B',
+                          'Ruang privat',
+                          'Outdoor',
+                        ];
+                        $selectedLoc = old('location');
+                      @endphp
+                      @foreach($locationOptions as $loc)
+                        <option value="{{ $loc }}" {{ $selectedLoc === $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                      @endforeach
+                    </select>
                     @error('location') <div class="invalid-feedback">{{ $message }}</div> @enderror
                   </div>
                   <div class="form-group col-md-6">
@@ -381,4 +395,8 @@
       @endif
     </div>
   </div>
+@endsection
+
+@section('scripts')
+  <script src="{{ asset('js/oneonone.js') }}"></script>
 @endsection
