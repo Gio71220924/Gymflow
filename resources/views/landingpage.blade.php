@@ -13,6 +13,7 @@
   $statAttendance = $appSettings['landing_stat_attendance'] ?? '86%';
   $statClasses = $appSettings['landing_stat_classes'] ?? '30+';
   $statCheckinSpeed = $appSettings['landing_stat_checkin'] ?? '< 20 dtk';
+  $today = Carbon::now($timezone);
   $preparedClasses = $liveClasses->map(function ($class) use ($timezone) {
     $start = Carbon::parse($class->start_at)->timezone($timezone);
     $end   = $class->end_at ? Carbon::parse($class->end_at)->timezone($timezone) : null;
@@ -57,6 +58,9 @@
       'title' => $class->title,
     ];
   });
+  $todayClasses = $preparedClasses->filter(function ($class) use ($today) {
+    return $class['start']->isSameDay($today);
+  })->values();
 @endphp
 <!doctype html>
 <html lang="id">
@@ -240,37 +244,43 @@
             <h2>Kelas favorit untuk semua level</h2>
             <p>Jadwal berganti setiap minggu. Pilih sesi pagi, siang, atau malam sesuai waktu kamu.</p>
           </div>
-          <div class="class-grid">
-            @forelse($preparedClasses as $class)
+          @if($todayClasses->isEmpty())
+            <div class="class-grid class-grid-fixed">
               <div class="class-card">
-                <div class="class-meta">
-                  <span class="pill mini soft">{{ $class['dateLabel'] }}</span>
-                  <span class="class-cap"><i class="bi bi-people"></i>{{ $class['capacity'] > 0 ? $class['capacity'] . ' kursi' : 'Tanpa batas' }}</span>
-                </div>
-                <h3>{{ $class['title'] }}</h3>
-                <p>{{ $class['location'] }}</p>
-                <div class="class-meta">
-                  <span><i class="bi bi-clock"></i> {{ $class['timeRange'] }}</span>
-                  <span><i class="bi bi-geo-alt"></i> {{ $class['location'] }}</span>
-                </div>
-                <div class="class-meta">
-                  @if($class['capacity'] > 0)
-                    <span class="badge {{ $class['isFull'] ? 'danger' : 'success' }}">{{ $class['isFull'] ? 'Penuh' : 'Sisa ' . $class['slotsLeft'] . ' slot' }}</span>
-                  @else
-                    <span class="badge info">Slot fleksibel</span>
-                  @endif
-                  <span class="muted">{{ $class['booked'] }} terdaftar - {{ $class['statusLabel'] }}</span>
-                </div>
-                <a class="btn join-btn full" href="{{ route('login') }}">Bergabung</a>
-              </div>
-            @empty
-              <div class="class-card">
-                <h3>Belum ada jadwal aktif</h3>
-                <p>Jadwal akan muncul otomatis saat admin membuat kelas baru.</p>
+                <h3>Belum ada jadwal hari ini</h3>
+                <p>Kelas akan tampil otomatis jika ada sesi di tanggal {{ $today->format('d M') }}.</p>
                 <a class="btn join-btn full" href="{{ route('login') }}">Masuk untuk update</a>
               </div>
-            @endforelse
-          </div>
+            </div>
+          @else
+            @foreach($todayClasses->chunk(4) as $classChunk)
+              <div class="class-grid class-grid-fixed">
+                @foreach($classChunk as $class)
+                  <div class="class-card">
+                    <div class="class-meta">
+                      <span class="pill mini soft">{{ $class['dateLabel'] }}</span>
+                      <span class="class-cap"><i class="bi bi-people"></i>{{ $class['capacity'] > 0 ? $class['capacity'] . ' kursi' : 'Tanpa batas' }}</span>
+                    </div>
+                    <h3>{{ $class['title'] }}</h3>
+                    <p>{{ $class['location'] }}</p>
+                    <div class="class-meta">
+                      <span><i class="bi bi-clock"></i> {{ $class['timeRange'] }}</span>
+                      <span><i class="bi bi-geo-alt"></i> {{ $class['location'] }}</span>
+                    </div>
+                    <div class="class-meta">
+                      @if($class['capacity'] > 0)
+                        <span class="badge {{ $class['isFull'] ? 'danger' : 'success' }}">{{ $class['isFull'] ? 'Penuh' : 'Sisa ' . $class['slotsLeft'] . ' slot' }}</span>
+                      @else
+                        <span class="badge info">Slot fleksibel</span>
+                      @endif
+                      <span class="muted">{{ $class['booked'] }} terdaftar - {{ $class['statusLabel'] }}</span>
+                    </div>
+                    <a class="btn join-btn full" href="{{ route('login') }}">Bergabung</a>
+                  </div>
+                @endforeach
+              </div>
+            @endforeach
+          @endif
         </div>
       </section>
 
