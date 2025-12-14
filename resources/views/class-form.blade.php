@@ -24,7 +24,7 @@
         $selected = old('trainer_ids', $selectedTrainerIds ?? []);
       @endphp
 
-      <form method="POST" action="{{ ($mode ?? 'create') === 'edit' ? route('class.update', $class->id) : route('class.store') }}">
+      <form method="POST" action="{{ ($mode ?? 'create') === 'edit' ? route('class.update', $class->id) : route('class.store') }}" enctype="multipart/form-data">
         @csrf
         @if(($mode ?? 'create') === 'edit')
           @method('PUT')
@@ -97,6 +97,23 @@
             </select>
             @error('trainer_ids') <div class="invalid-feedback">{{ $message }}</div> @enderror
           </div>
+        </div>
+
+        <div class="form-group">
+          <label for="photo">Foto/Gambar kelas</label>
+          <input type="file" name="photo" id="photo" class="form-control-file @error('photo') is-invalid @enderror" accept=".jpg,.jpeg,.png,.webp">
+          @error('photo') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+          @if(($mode ?? 'create') === 'edit' && !empty($class->photo))
+            <div class="mt-2 d-flex align-items-center" style="gap:12px;">
+              <img src="{{ asset('storage/' . $class->photo) }}" alt="Foto kelas" style="height:80px; width:120px; object-fit:cover; border-radius:6px; border:1px solid #e5e5e5;">
+              <div>
+                <div class="text-muted small">Foto saat ini</div>
+                <label class="small mb-0">
+                  <input type="checkbox" name="remove_photo" value="1"> Hapus foto
+                </label>
+              </div>
+            </div>
+          @endif
         </div>
 
         <div class="d-flex justify-content-between align-items-center mt-3">

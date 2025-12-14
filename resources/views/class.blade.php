@@ -278,6 +278,11 @@
               @endphp
               <tr>
                 <td>
+                  @if(!empty($class->photo))
+                    <div class="mb-2">
+                      <img src="{{ asset('storage/' . $class->photo) }}" alt="{{ $class->title }}" style="height:60px; width:100px; object-fit:cover; border-radius:6px; border:1px solid #e9ecef;">
+                    </div>
+                  @endif
                   <div class="font-weight-bold">{{ $class->title }}</div>
                   @if(!empty($class->location))
                     <div class="text-muted small">{{ $class->location }}</div>

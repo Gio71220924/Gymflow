@@ -1,5 +1,6 @@
 @php
   use Carbon\Carbon;
+  use Illuminate\Support\Facades\Storage;
   $brandName = $appSettings['branding_name'] ?? 'GymFlow';
   $brandColor = $appSettings['branding_color'] ?? '#FC7753';
   $tagline = $appSettings['branding_tagline'] ?? 'Kelola gym, jadwal, dan pembayaran dengan satu dashboard.';
@@ -22,6 +23,7 @@
     $end   = $class->end_at ? Carbon::parse($class->end_at)->timezone($timezone) : null;
     $capacity = max(0, (int) ($class->capacity ?? 0));
     $booked = (int) ($class->booked_count ?? 0);
+    $photoUrl = !empty($class->photo) ? Storage::url($class->photo) : null;
     if ($booked === 0) {
       // Tampilkan angka simulasi agar tidak kosong, tanpa melebihi kapasitas
       if ($capacity > 0) {
@@ -60,6 +62,7 @@
       'location' => $class->location ?: 'Lokasi menyusul',
       'title' => $class->title,
       'trainerNames' => $class->trainer_names ?? '',
+      'photo' => $photoUrl,
     ];
   })->values();
   $filteredClasses = $preparedClasses->filter(function ($class) use ($searchDateCarbon) {
@@ -271,6 +274,11 @@
           <div class="class-grid">
             @forelse($filteredClasses as $class)
               <div class="class-card">
+                @if(!empty($class['photo']))
+                  <div style="height:140px; border-radius:12px; overflow:hidden; margin-bottom:12px; border:1px solid #eee;">
+                    <img src="{{ $class['photo'] }}" alt="Foto {{ $class['title'] }}" style="width:100%; height:100%; object-fit:cover;">
+                  </div>
+                @endif
                 <div class="class-meta">
                   <span class="pill mini soft">{{ $class['dateLabel'] }}</span>
                   <span class="class-cap"><i class="bi bi-people"></i>{{ $class['capacity'] > 0 ? $class['capacity'] . ' kursi' : 'Tanpa batas' }}</span>

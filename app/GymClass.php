@@ -17,6 +17,7 @@ class GymClass extends Model
         'start_at',
         'end_at',
         'type',
+        'photo',
         'status',
     ];
 

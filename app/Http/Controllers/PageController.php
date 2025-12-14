@@ -42,7 +42,7 @@ class PageController extends Controller
         $q = trim($request->query('q', ''));
 
         $baseQuery = DB::table('gym_classes as gc')
-            ->select('gc.id', 'gc.title', 'gc.location', 'gc.start_at', 'gc.end_at', 'gc.capacity', 'gc.status')
+            ->select('gc.id', 'gc.title', 'gc.location', 'gc.start_at', 'gc.end_at', 'gc.capacity', 'gc.status', 'gc.photo')
             ->selectSub(function ($query) {
                 $query->from('class_bookings as cb')
                     ->whereColumn('cb.class_id', 'gc.id')
@@ -437,6 +437,11 @@ class PageController extends Controller
         $payload = $this->validateClassPayload($request);
         $trainerIds = $payload['trainer_ids'] ?? [];
         unset($payload['trainer_ids']);
+        unset($payload['photo']);
+
+        if ($request->hasFile('photo')) {
+            $payload['photo'] = $request->file('photo')->store('class_photos', 'public');
+        }
 
         $class = GymClass::create($payload);
         $this->syncClassTrainers($class, $trainerIds);
@@ -471,6 +476,23 @@ class PageController extends Controller
         $payload = $this->validateClassPayload($request);
         $trainerIds = $payload['trainer_ids'] ?? [];
         unset($payload['trainer_ids']);
+        unset($payload['photo']);
+
+        if ($request->hasFile('photo')) {
+            $newPath = $request->file('photo')->store('class_photos', 'public');
+            $payload['photo'] = $newPath;
+
+            if (!empty($class->photo)) {
+                Storage::disk('public')->delete($class->photo);
+            }
+        }
+
+        if ($request->boolean('remove_photo')) {
+            if (!empty($class->photo)) {
+                Storage::disk('public')->delete($class->photo);
+            }
+            $payload['photo'] = null;
+        }
 
         $class->update($payload);
         $this->syncClassTrainers($class, $trainerIds);
@@ -482,6 +504,11 @@ class PageController extends Controller
     {
         $this->ensureSuperAdmin($request);
         $class = GymClass::findOrFail($id);
+
+        if (!empty($class->photo)) {
+            Storage::disk('public')->delete($class->photo);
+        }
+
         $class->delete();
 
         return redirect()->route('class')->with('success', 'Kelas berhasil dihapus.');
@@ -1402,6 +1429,7 @@ class PageController extends Controller
             'end_at'       => 'required|date|after:start_at',
             'type'         => 'nullable|string|max:100',
             'status'       => 'required|in:Scheduled,Cancelled,Done',
+            'photo'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'trainer_ids'  => 'nullable|array',
             'trainer_ids.*'=> 'integer|exists:trainers,id',
         ]);
