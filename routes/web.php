@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Verified;
 
 
-Route::group(['middleware' => ['auth','verified']], function () {
+Route::group(['middleware' => ['auth','verified','profile.complete']], function () {
 
     // Dashboard
     Route::get('/home', [PageController::class, 'home'])->name('home');
