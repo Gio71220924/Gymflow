@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 
 // Ini khusus USER!!!! Member gym di PageController
@@ -67,21 +68,57 @@ class UserController extends Controller
 
     public function updatePassword(Request $request)
     {
-        $validated = $request->validate([
-            'current_password' => 'required',
-            'new_password' => 'required|string|min:8|confirmed',
-        ]);
+        $rules = [
+            'new_password'   => 'nullable|string|min:8|confirmed',
+            'foto_profil'    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ];
+        if ($request->filled('new_password')) {
+            $rules['current_password'] = 'required';
+        }
+
+        $validated = $request->validate($rules);
 
         $user = auth()->user();
 
-        if (!Hash::check($validated['current_password'], $user->password)) {
-            return back()->with('error', 'Password lama tidak sesuai.');
+        $passwordUpdated = false;
+        if (!empty($validated['new_password'])) {
+            if (!Hash::check($validated['current_password'] ?? '', $user->password)) {
+                return back()->with('error', 'Password lama tidak sesuai.')->withInput();
+            }
+
+            $user->update([
+                'password' => Hash::make($validated['new_password']),
+            ]);
+            $passwordUpdated = true;
         }
 
-        $user->update([
-            'password' => Hash::make($validated['new_password']),
-        ]);
+        $photoUpdated = false;
+        if ($request->hasFile('foto_profil')) {
+            $member = $user->memberGym;
+            if (!$member) {
+                return back()->with('error', 'Profil member tidak ditemukan.')->withInput();
+            }
 
-        return back()->with('success', 'Password berhasil diubah.');
+            if (!empty($member->foto_profil)) {
+                Storage::disk('public')->delete('foto_profil/' . $member->foto_profil);
+            }
+            $fileName = time() . '-' . $request->file('foto_profil')->getClientOriginalName();
+            $request->file('foto_profil')->storeAs('foto_profil', $fileName, 'public');
+            $member->foto_profil = $fileName;
+            $member->save();
+            $photoUpdated = true;
+        }
+
+        if ($passwordUpdated && $photoUpdated) {
+            return back()->with('success', 'Password dan foto profil berhasil diperbarui.');
+        }
+        if ($passwordUpdated) {
+            return back()->with('success', 'Password berhasil diubah.');
+        }
+        if ($photoUpdated) {
+            return back()->with('success', 'Foto profil berhasil diperbarui.');
+        }
+
+        return back()->with('success', 'Tidak ada perubahan disimpan.');
     }
 }
