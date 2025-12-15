@@ -1,2 +1,6 @@
 *
 !.gitignore
+!branding/
+!class_photos/
+!foto_profil/
+!images/
