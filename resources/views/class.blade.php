@@ -55,6 +55,7 @@
             <select name="sort" class="form-control" onchange="this.form.submit()">
               <option value="terbaru" {{ ($sort ?? 'terbaru') === 'terbaru' ? 'selected' : '' }}>Terbaru dulu</option>
               <option value="terlama" {{ ($sort ?? 'terbaru') === 'terlama' ? 'selected' : '' }}>Terlama dulu</option>
+              <option value="premium_only" {{ ($sort ?? '') === 'premium_only' ? 'selected' : '' }}>Premium only</option>
             </select>
           </div>
 

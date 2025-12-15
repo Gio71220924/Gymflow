@@ -276,8 +276,10 @@ class PageController extends Controller
         if (! in_array($perPage, [10, 20, 50], true)) {
             $perPage = 10;
         }
-        $sort = $request->input('sort', 'terbaru'); // terbaru = desc, terlama = asc
+        $sort = $request->input('sort', 'terbaru'); // terbaru = desc, terlama = asc, premium_only = filter
         $now  = Carbon::now('Asia/Jakarta');
+        $onlyPremium = $sort === 'premium_only';
+        $sortMode = $onlyPremium ? 'terbaru' : $sort;
 
         $user     = $request->user();
         $member   = optional($user)->memberGym;
@@ -319,10 +321,13 @@ class PageController extends Controller
                     $sub->where('gc.title', 'like', '%' . $q . '%')
                         ->orWhere('gc.location', 'like', '%' . $q . '%')
                         ->orWhere('gc.status', 'like', '%' . $q . '%')
-                        ->orWhere('t.name', 'like', '%' . $q . '%');
+                    ->orWhere('t.name', 'like', '%' . $q . '%');
                 });
             })
-            ->when($sort === 'terlama', function ($query) {
+            ->when($onlyPremium, function ($query) {
+                $query->where('gc.access_type', 'premium_only');
+            })
+            ->when($sortMode === 'terlama', function ($query) {
                 $query->orderBy('gc.start_at', 'asc');
             }, function ($query) use ($now) {
                 // "terbaru": tampilkan jadwal mendatang lebih dulu (urut paling dekat), lalu yang sudah lewat
@@ -396,6 +401,7 @@ class PageController extends Controller
             'trainers'         => $trainers,
             'isPremiumMember'  => $isPremiumMember,
             'bookingWindowHours' => $bookingWindowHours,
+            'onlyPremium'    => $onlyPremium,
         ]);
     }
 
