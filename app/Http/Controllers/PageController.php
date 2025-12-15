@@ -285,6 +285,8 @@ class PageController extends Controller
         $isAdmin  = $user && $user->role === User::ROLE_SUPER_ADMIN;
         $isUser   = $user && $user->role === User::ROLE_USER;
         $membership = $member ? $member->memberMemberships()->latest('id')->first() : null;
+        $isPremiumMember = $this->isPremiumMember($member, $membership);
+        $bookingWindowHours = (int) $this->getSettingValue('booking_basic_priority_hours', 48);
 
         // Tidak bisa akses kelas, auto redirect ke Home jika membership expired
         if ($isUser && $this->isMembershipExpired($membership, $member)) {
@@ -392,6 +394,8 @@ class PageController extends Controller
             'sort'        => $sort,
             'oneOnOneRequests' => $oneOnOneRequests,
             'trainers'         => $trainers,
+            'isPremiumMember'  => $isPremiumMember,
+            'bookingWindowHours' => $bookingWindowHours,
         ]);
     }
 
@@ -512,6 +516,7 @@ class PageController extends Controller
         }
 
         $latestMembership = $member->memberMemberships()->latest('id')->first();
+        $isPremiumMember = $this->isPremiumMember($member, $latestMembership);
         if ($this->isMembershipExpired($latestMembership, $member)) {
             return back()->with('error', 'Membership Anda sudah berakhir. Perpanjang untuk booking kelas.');
         }
@@ -523,6 +528,7 @@ class PageController extends Controller
 
         $class = GymClass::findOrFail($id);
         $classStart = Carbon::parse($class->start_at)->timezone('Asia/Jakarta');
+        $classAccess = strtolower($class->access_type ?? 'all');
         $statusNormalized = strtolower(trim((string) $class->status));
         if ($classStart->isFuture() && $statusNormalized === 'done') {
             $statusNormalized = 'scheduled'; // data bisa tidak sinkron, anggap jadwal aktif
@@ -534,6 +540,16 @@ class PageController extends Controller
 
         if ($classStart->isPast()) {
             return back()->with('error', 'Kelas sudah berjalan atau selesai, tidak dapat dibooking.');
+        }
+
+        if ($classAccess === 'premium_only' && !$isPremiumMember) {
+            return back()->with('error', 'Kelas ini khusus untuk member Premium.');
+        }
+
+        $priorityHours = (int) $this->getSettingValue('booking_basic_priority_hours', 48);
+        $basicBookingOpenAt = $classStart->copy()->subHours(max($priorityHours, 0));
+        if (!$isPremiumMember && $classAccess !== 'premium_only' && Carbon::now('Asia/Jakarta')->lt($basicBookingOpenAt)) {
+            return back()->with('error', 'Member Basic bisa booking mulai ' . $basicBookingOpenAt->format('d M Y H:i') . '.');
         }
 
         $activeCount = ClassBooking::where('class_id', $class->id)
@@ -1361,6 +1377,18 @@ class PageController extends Controller
         return 0;
     }
 
+    private function isPremiumMember($member = null, $membership = null)
+    {
+        $planName = null;
+        if ($membership && $membership->plan && $membership->plan->nama) {
+            $planName = strtolower($membership->plan->nama);
+        } elseif ($member && $member->membership_plan) {
+            $planName = strtolower($member->membership_plan);
+        }
+
+        return $planName === 'premium';
+    }
+
     private function isMembershipExpired($membership = null, $member = null)
     {
         $endDate = optional($membership)->end_date ?? optional($member)->end_date;
@@ -1411,6 +1439,7 @@ class PageController extends Controller
             'start_at'     => 'required|date',
             'end_at'       => 'required|date|after:start_at',
             'type'         => 'nullable|string|max:100',
+            'access_type'  => 'required|in:all,premium_only',
             'status'       => 'required|in:Scheduled,Cancelled,Done',
             'photo'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'trainer_id'   => 'nullable|integer|exists:trainers,id',

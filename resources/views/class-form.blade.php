@@ -82,6 +82,15 @@
             @error('type') <div class="invalid-feedback">{{ $message }}</div> @enderror
           </div>
           <div class="form-group col-md-4">
+            <label for="access_type">Akses membership <span class="text-danger">*</span></label>
+            <select name="access_type" id="access_type" class="form-control @error('access_type') is-invalid @enderror" required>
+              @php $selectedAccess = old('access_type', $class->access_type ?? 'all'); @endphp
+              <option value="all" {{ $selectedAccess === 'all' ? 'selected' : '' }}>Semua (Basic & Premium)</option>
+              <option value="premium_only" {{ $selectedAccess === 'premium_only' ? 'selected' : '' }}>Khusus Premium</option>
+            </select>
+            @error('access_type') <div class="invalid-feedback">{{ $message }}</div> @enderror
+          </div>
+          <div class="form-group col-md-4">
             <label for="status">Status <span class="text-danger">*</span></label>
             <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
               @foreach(['Scheduled', 'Cancelled', 'Done'] as $status)

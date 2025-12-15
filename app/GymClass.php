@@ -20,6 +20,7 @@ class GymClass extends Model
         'photo',
         'status',
         'trainer_id',
+        'access_type',
     ];
 
     protected $casts = [

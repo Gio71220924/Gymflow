@@ -264,11 +264,21 @@
                 $userBookingStatus = $class->user_booking_status ?? null;
                 $classParticipants = ($participants ?? collect())->get($class->id, collect());
                 $normalizedStatus = strtolower(trim((string) $class->status));
+                $accessType = strtolower($class->access_type ?? 'all');
+                $isPremiumOnly = $accessType === 'premium_only';
+                $nowJakarta = \Carbon\Carbon::now('Asia/Jakarta');
+                $basicOpenAt = $start->copy()->subHours($bookingWindowHours ?? 48);
+                $basicTooEarly = !$isPremiumMember && !$isPremiumOnly && $nowJakarta->lt($basicOpenAt);
+                $blockedByAccess = $isPremiumOnly && !$isPremiumMember;
                 if ($startObj->isFuture() && $normalizedStatus === 'done') {
                   $normalizedStatus = 'scheduled'; // data bisa out-of-sync, anggap masih berjalan
                 }
                 $isPast = $startObj->isPast();
-                $canJoin = !in_array($normalizedStatus, ['cancelled', 'done'], true) && !$isFull && !$isPast;
+                $canJoin = !in_array($normalizedStatus, ['cancelled', 'done'], true)
+                  && !$isFull
+                  && !$isPast
+                  && !$basicTooEarly
+                  && !$blockedByAccess;
                 $statusClass = [
                   'scheduled' => 'primary',
                   'done'      => 'success',
@@ -283,7 +293,12 @@
                       <img src="{{ !empty($class->photo) ? asset('storage/' . $class->photo) : asset('images/noimage.png') }}" alt="{{ $class->title }}" style="width:100%; height:100%; object-fit:contain;">
                     </div>
                     <div>
-                      <div class="font-weight-bold">{{ $class->title }}</div>
+                      <div class="font-weight-bold d-flex align-items-center" style="gap:6px;">
+                        <span>{{ $class->title }}</span>
+                        @if($isPremiumOnly)
+                          <span class="badge badge-warning">Premium only</span>
+                        @endif
+                      </div>
                       @if(!empty($class->location))
                         <div class="text-muted small">{{ $class->location }}</div>
                       @endif
@@ -346,7 +361,15 @@
                         @csrf
                         <button type="submit" class="btn btn-sm btn-primary" {{ $canJoin ? '' : 'disabled' }}>
                           @if(!$canJoin)
-                            {{ $isFull ? 'Kelas Penuh' : 'Tidak Tersedia' }}
+                            @if($blockedByAccess)
+                              Khusus Premium
+                            @elseif($basicTooEarly)
+                              Belum dibuka
+                            @elseif($isFull)
+                              Kelas Penuh
+                            @else
+                              Tidak Tersedia
+                            @endif
                           @else
                             Gabung Kelas
                           @endif
@@ -357,6 +380,10 @@
                           <div class="text-muted small mt-1">Kelas sudah lewat, tidak dapat dibooking.</div>
                         @elseif(in_array($normalizedStatus, ['cancelled','done'], true))
                           <div class="text-muted small mt-1">Kelas tidak dapat dibooking.</div>
+                        @elseif($blockedByAccess)
+                          <div class="text-muted small mt-1">Hanya member Premium yang dapat bergabung.</div>
+                        @elseif($basicTooEarly)
+                          <div class="text-muted small mt-1">Member Basic dapat booking mulai {{ $basicOpenAt->format('d M Y H:i') }}.</div>
                         @endif
                       </form>
                     @endif
