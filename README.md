@@ -107,25 +107,3 @@ Gymflow/
 ├── routes/                 # Application routes
 └── storage/                # File storage
 ```
-
-## Kontribusi
-
-Kami menyambut kontribusi dari komunitas! Silakan ikuti langkah-langkah berikut:
-
-1. Fork project ini
-2. Buat branch fitur baru (`git checkout -b fitur/NamaFitur`)
-3. Commit perubahan Anda (`git commit -m 'Tambahkan fitur NamaFitur'`)
-4. Push ke branch (`git push origin fitur/NamaFitur`)
-5. Buat pull request
-
-## Tim Pengembang
-
-Project ini dikembangkan sebagai tugas akhir semester 7 - PWL (Pemrograman Web Lanjut) di jurusan Sistem Informasi.
-
-## Lisensi
-
-Project ini dilisensikan di bawah MIT License - lihat file [LICENSE](LICENSE) untuk detail lebih lanjut.
-
----
-
-<h3 align="center">Dibangun dengan ❤️ untuk membantu dunia fitness</h3>
