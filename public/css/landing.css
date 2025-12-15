@@ -30,6 +30,29 @@
     h1, h2, h3, h4 { font-family: 'Space Grotesk', 'Sora', sans-serif; letter-spacing: -0.02em; margin: 0; }
     p { margin: 0; color: var(--muted); }
     .page { position: relative; min-height: 100vh; overflow-x: hidden; }
+    .back-to-top {
+      position: fixed;
+      bottom: 26px;
+      right: 24px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+      outline: none;
+      background: linear-gradient(135deg, var(--brand), #ffb686);
+      color: #0f172a;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 14px 30px rgba(252,119,83,0.35);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      z-index: 900;
+    }
+    .back-to-top:hover { box-shadow: 0 16px 32px rgba(252,119,83,0.45); transform: translateY(4px); }
+    .back-to-top.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
     .backdrop {
       position: fixed;
       z-index: -1;

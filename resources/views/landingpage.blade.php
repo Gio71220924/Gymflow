@@ -425,15 +425,24 @@
         </div>
       </div>
     </footer>
+    <button id="backToTop" class="back-to-top" aria-label="Kembali ke atas">
+      <i class="bi bi-arrow-up-short" style="font-size:22px;"></i>
+    </button>
   </div>
 
   <script>
     (function () {
       const topbar = document.getElementById('topbar');
+      const backToTop = document.getElementById('backToTop');
       function handleScroll() {
-        if (!topbar) return;
-        if (window.scrollY > 20) topbar.classList.add('scrolled');
-        else topbar.classList.remove('scrolled');
+        if (topbar) {
+          if (window.scrollY > 20) topbar.classList.add('scrolled');
+          else topbar.classList.remove('scrolled');
+        }
+        if (backToTop) {
+          if (window.scrollY > 240) backToTop.classList.add('show');
+          else backToTop.classList.remove('show');
+        }
       }
       handleScroll();
       window.addEventListener('scroll', handleScroll);
@@ -448,6 +457,12 @@
           }
         });
       });
+
+      if (backToTop) {
+        backToTop.addEventListener('click', function () {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
     })();
   </script>
   <script type="module">
