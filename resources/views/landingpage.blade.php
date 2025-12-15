@@ -85,6 +85,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css">
   <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
   <style>:root{--brand: {{ $brandColor }};}</style>
 </head>
@@ -448,6 +449,14 @@
         });
       });
     })();
+  </script>
+  <script type="module">
+    import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+    // Widget chat n8n (floating bubble di pojok kanan bawah)
+    createChat({
+      webhookUrl: 'http://localhost:5678/webhook/2c0f65e8-e7a0-4e6d-837d-23254c504243/chat'
+    });
   </script>
 </body>
 </html>
