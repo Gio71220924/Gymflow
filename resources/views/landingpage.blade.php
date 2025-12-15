@@ -454,9 +454,14 @@
     import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
 
     // Widget chat n8n (floating bubble di pojok kanan bawah)
-    createChat({
-      webhookUrl: 'http://localhost:5678/webhook/2c0f65e8-e7a0-4e6d-837d-23254c504243/chat'
-    });
+    createChat({                                                                                                                                                                                        
+    webhookUrl: 'http://localhost:5678/webhook/2c0f65e8-e7a0-4e6d-837d-23254c504243/chat',                                                                                                                                               
+    title: 'FlowAI',                                                                                                                                                                                  
+    subtitle: 'Asisten otomatis GymFlow',                                                                                                                                                             
+    initialMessages: [                                                                                                                                                                                
+      'Hi, selamat datang di FlowAI!, Assisten otomatis dari GymFlow yang siap melayani kamu!'                                                                                                        
+    ],                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  });                                                                                                                                                                                                 
   </script>
 </body>
 </html>
