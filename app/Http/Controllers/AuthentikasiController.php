@@ -8,6 +8,7 @@ use App\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AuthentikasiController extends Controller
 {
@@ -52,18 +53,33 @@ class AuthentikasiController extends Controller
             'password'              => 'required|string|min:8|confirmed',
         ]);
 
-        $user = User::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role'     => User::ROLE_USER,
-            'status'   => User::STATUS_INACTIVE,
-        ]);
+        try {
+            DB::beginTransaction();
 
-        event(new Registered($user)); // kirim email verifikasi bawaan Laravel
-        Auth::login($user);
+            $user = User::create([
+                'name'     => $validated['name'],
+                'email'    => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role'     => User::ROLE_USER,
+                'status'   => User::STATUS_INACTIVE,
+            ]);
 
-        return redirect()->route('verification.notice')->with('success', 'Registrasi berhasil. Cek email untuk verifikasi.');
+            // Kirim email verifikasi; jika gagal, biarkan exception agar transaksi di-rollback
+            event(new Registered($user));
+
+            DB::commit();
+
+            Auth::login($user);
+
+            return redirect()->route('verification.notice')->with('success', 'Registrasi berhasil. Cek email untuk verifikasi.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return back()
+                ->withErrors(['email' => 'Registrasi gagal karena email verifikasi tidak bisa dikirim. Silakan coba lagi.'])
+                ->withInput($request->only('name', 'email'));
+        }
     }
 
     public function logout(Request $request)
