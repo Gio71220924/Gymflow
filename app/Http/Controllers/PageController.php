@@ -1012,7 +1012,7 @@ class PageController extends Controller
     {
         $validated = $request->validate([
             'user_id'               => 'required|exists:users,id|unique:member_gym,user_id',
-            'id_member'             => 'required|string|max:10|unique:member_gym,id_member',
+            'id_member'             => 'required|string|max:20|unique:member_gym,id_member',
             'nama_member'           => 'required|string|max:100',
             'email_member'          => 'required|email|max:100|unique:member_gym,email_member',
             'nomor_telepon_member'  => 'required|string|max:20',
@@ -1070,7 +1070,7 @@ class PageController extends Controller
 
         $validated = $request->validate([
             'user_id'               => 'required|exists:users,id|unique:member_gym,user_id,' . $member->id,
-            'id_member'             => 'required|string|max:10|unique:member_gym,id_member,' . $member->id,
+            'id_member'             => 'required|string|max:20|unique:member_gym,id_member,' . $member->id,
             'nama_member'           => 'required|string|max:100',
             'email_member'          => 'required|email|max:100|unique:member_gym,email_member,' . $member->id,
             'nomor_telepon_member'  => 'required|string|max:20',
