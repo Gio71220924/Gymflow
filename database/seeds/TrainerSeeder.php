@@ -105,21 +105,11 @@ class TrainerSeeder extends Seeder
             return;
         }
 
-        DB::table('class_trainers')->delete();
-
-        $rows = [];
         foreach ($classIds as $cid) {
-            $count = rand(1, min(3, count($trainerIds)));
-            $selected = collect($trainerIds)->shuffle()->take($count);
-            foreach ($selected as $tid) {
-                $rows[] = [
-                    'class_id'   => $cid,
-                    'trainer_id' => $tid,
-                    'role'       => 'lead',
-                ];
-            }
+            $tid = collect($trainerIds)->random();
+            DB::table('gym_classes')
+                ->where('id', $cid)
+                ->update(['trainer_id' => $tid]);
         }
-
-        DB::table('class_trainers')->insert($rows);
     }
 }

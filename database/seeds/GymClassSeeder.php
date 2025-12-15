@@ -36,6 +36,8 @@ class GymClassSeeder extends Seeder
                 ? 'Scheduled'
                 : 'Done';
 
+            $accessType = (mt_rand(0, 99) < 30) ? 'premium_only' : 'all'; // ~30% kelas khusus premium
+
             $classes[] = [
                 'title'       => $types[$i % count($types)] . ' Session #' . ($i + 1),
                 'description' => 'Sesi fokus pada teknik dasar dan conditioning untuk meningkatkan performa.',
@@ -45,6 +47,7 @@ class GymClassSeeder extends Seeder
                 'start_at'    => $start,
                 'end_at'      => $end,
                 'type'        => $types[$i % count($types)],
+                'access_type' => $accessType,
                 'status'      => $status,
                 'created_at'  => Carbon::now(),
                 'updated_at'  => Carbon::now(),
