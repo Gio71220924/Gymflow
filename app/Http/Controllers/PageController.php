@@ -844,6 +844,53 @@ class PageController extends Controller
         return redirect()->route('billing')->with('success', 'Status invoice berhasil diperbarui.');
     }
 
+    public function confirmPayment(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user || $user->role !== User::ROLE_USER) {
+            abort(403, 'Hanya member yang dapat mengirim konfirmasi pembayaran.');
+        }
+
+        $invoice = Invoice::with(['memberMembership.member'])->findOrFail($id);
+        $memberId = optional(optional($invoice->memberMembership)->member)->id;
+        if (!$memberId || $memberId !== optional($user->memberGym)->id) {
+            abort(403, 'Invoice tidak sesuai dengan akun Anda.');
+        }
+
+        if ($invoice->status === 'lunas') {
+            return back()->with('success', 'Invoice sudah lunas. Tidak perlu konfirmasi.');
+        }
+
+        $data = $request->validate([
+            'method'       => 'required|in:cash,transfer,ewallet,credit_card',
+            'reference_no' => 'nullable|string|max:100',
+            'catatan'      => 'nullable|string|max:500',
+            'amount'       => 'nullable|numeric|min:0',
+        ]);
+
+        Payment::create([
+            'invoice_id'   => $invoice->id,
+            'amount'       => $data['amount'] ?? $invoice->total_tagihan,
+            'method'       => $data['method'],
+            'paid_at'      => null,
+            'status'       => 'pending',
+            'bukti_bayar'  => null,
+            'reference_no' => $data['reference_no'] ?? null,
+            'catatan'      => $data['catatan'] ?? 'Konfirmasi pembayaran oleh member',
+        ]);
+
+        $invoice->status = 'menunggu';
+        $invoice->save();
+
+        $membership = $invoice->memberMembership;
+        if ($membership) {
+            $membership->pembayaran_status = 'menunggu';
+            $membership->save();
+        }
+
+        return back()->with('success', 'Konfirmasi pembayaran terkirim. Admin akan memproses.');
+    }
+
     /* ======================== SETTINGS ======================== */
 
     public function settings()

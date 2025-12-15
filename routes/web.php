@@ -41,6 +41,7 @@ Route::group(['middleware' => ['auth','verified','profile.complete']], function 
     Route::post('/billing', [PageController::class, 'storeInvoice'])->name('billing.store');
     Route::put('/billing/{id}', [PageController::class, 'updateInvoiceStatus'])->name('billing.update');
     Route::get('/billing/{id}/print', [PageController::class, 'printInvoice'])->name('billing.print');
+    Route::post('/billing/{id}/confirm-payment', [PageController::class, 'confirmPayment'])->name('billing.confirm');
 
     // Settings
     Route::get('/settings', [PageController::class, 'settings'])->name('settings');

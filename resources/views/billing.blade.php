@@ -283,8 +283,48 @@
           </td>
           @else
           <td>
-            <a class="btn btn-sm btn-outline-secondary mb-1" href="{{ route('billing.print', $invoice->id) }}" target="_blank" rel="noopener">Lihat / Cetak</a><br>
-            <small class="text-muted">Status diatur oleh admin</small>
+            <a class="btn btn-sm btn-outline-secondary mb-2" href="{{ route('billing.print', $invoice->id) }}" target="_blank" rel="noopener">Detail / Cetak</a>
+            @php
+              $canConfirm = !in_array($invoice->status, ['lunas', 'batal'], true);
+              $collapseId = 'pay-' . $invoice->id;
+            @endphp
+            @if($canConfirm)
+              <button class="btn btn-sm btn-primary mb-1" type="button" data-toggle="collapse" data-target="#{{ $collapseId }}" aria-expanded="false" aria-controls="{{ $collapseId }}">
+                Saya sudah bayar
+              </button>
+              <div class="collapse mt-2" id="{{ $collapseId }}">
+                <div class="border rounded p-2 bg-light">
+                  <div class="small mb-1">
+                    Total: <strong>Rp {{ number_format($invoice->total_tagihan, 0, ',', '.') }}</strong><br>
+                    Jatuh tempo: {{ $invoice->due_date ?? '-' }}
+                  </div>
+                  <form method="POST" action="{{ route('billing.confirm', $invoice->id) }}">
+                    @csrf
+                    <div class="form-group mb-2">
+                      <label class="small mb-1">Metode bayar</label>
+                      <select name="method" class="form-control form-control-sm" required>
+                        <option value="transfer">Transfer</option>
+                        <option value="ewallet">E-Wallet</option>
+                        <option value="cash">Cash</option>
+                        <option value="credit_card">Credit Card</option>
+                      </select>
+                    </div>
+                    <div class="form-group mb-2">
+                      <label class="small mb-1">Nomor referensi (opsional)</label>
+                      <input type="text" name="reference_no" class="form-control form-control-sm" placeholder="ID transaksi / no. transfer">
+                    </div>
+                    <div class="form-group mb-2">
+                      <label class="small mb-1">Catatan (opsional)</label>
+                      <textarea name="catatan" rows="2" class="form-control form-control-sm" placeholder="Tanggal bayar, bank, dsb."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-success">Kirim ke admin</button>
+                    <div class="text-muted small mt-1">Status akan di-update oleh admin setelah verifikasi.</div>
+                  </form>
+                </div>
+              </div>
+            @else
+              <small class="text-muted d-block">Invoice sudah {{ $invoice->status }}.</small>
+            @endif
           </td>
           @endif
         </tr>
