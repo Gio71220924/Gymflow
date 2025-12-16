@@ -241,6 +241,11 @@
         </div>
       @endif
 
+      @php
+        $storageTimezone = config('app.timezone', 'UTC');
+        $displayTimezone = 'Asia/Jakarta'; // GMT+7
+      @endphp
+
       <div class="table-responsive">
         <table class="table table-striped table-bordered table-hover w-100 mb-0">
           <thead class="thead-light">
@@ -257,8 +262,8 @@
           <tbody>
             @forelse(($classes ?? []) as $class)
               @php
-                $start = \Carbon\Carbon::parse($class->start_at)->timezone('Asia/Jakarta');
-                $end   = \Carbon\Carbon::parse($class->end_at)->timezone('Asia/Jakarta');
+                $start = \Carbon\Carbon::parse($class->start_at, $storageTimezone)->setTimezone($displayTimezone);
+                $end   = \Carbon\Carbon::parse($class->end_at, $storageTimezone)->setTimezone($displayTimezone);
                 $startObj = $start->copy();
                 $bookedCount = (int) ($class->booked_count ?? 0);
                 $isFull = $bookedCount >= ($class->capacity ?? 0);
@@ -267,7 +272,7 @@
                 $normalizedStatus = strtolower(trim((string) $class->status));
                 $accessType = strtolower($class->access_type ?? 'all');
                 $isPremiumOnly = $accessType === 'premium_only';
-                $nowJakarta = \Carbon\Carbon::now('Asia/Jakarta');
+                $nowJakarta = \Carbon\Carbon::now($displayTimezone);
                 $basicOpenAt = $start->copy()->subHours($bookingWindowHours ?? 48);
                 $basicTooEarly = !$isPremiumMember && !$isPremiumOnly && $nowJakarta->lt($basicOpenAt);
                 $blockedByAccess = $isPremiumOnly && !$isPremiumMember;
@@ -308,7 +313,10 @@
                 </td>
                 <td>{{ $class->trainer_name ?? 'Belum ada instruktur' }}</td>
                 <td>{{ $start->format('Y-m-d') }}</td>
-                <td>{{ $start->format('H:i') }} - {{ $end->format('H:i') }}</td>
+                <td>
+                  {{ $start->format('H:i') }} - {{ $end->format('H:i') }}
+                  <div class="text-muted small">GMT+7 (WIB)</div>
+                </td>
                 <td>
                   <div class="font-weight-bold">{{ $bookedCount }} / {{ $class->capacity }}</div>
                   <div class="text-muted small">Tersisa {{ max(($class->capacity ?? 0) - $bookedCount, 0) }} slot</div>

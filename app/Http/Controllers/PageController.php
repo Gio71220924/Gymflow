@@ -68,21 +68,25 @@ class PageController extends Controller
         };
 
         if ($searchDateInput) {
+            $sStart = $searchDate->copy()->startOfDay();
+            $sEnd   = $searchDate->copy()->endOfDay();
+
             $gymClasses = (clone $baseQuery)
-                ->when($searchDate, function ($query) use ($searchDate, $todayDate, $startOfDay) {
-                    $query->whereDate('gc.start_at', $searchDate->toDateString());
-                    if ($searchDate->toDateString() === $todayDate) {
-                        $query->where('gc.start_at', '>=', $startOfDay);
-                    }
+                ->whereBetween('gc.start_at', [$sStart, $sEnd])
+                ->when($searchDate->toDateString() === $todayDate, function ($query) use ($now) {
+                    $query->where('gc.start_at', '>=', $now);
                 })
                 ->tap($applySearch)
                 ->orderBy('gc.start_at')
                 ->limit(20)
                 ->get();
         } else {
+            $tStart = $now->copy()->startOfDay();
+            $tEnd   = $now->copy()->endOfDay();
+
             $gymClasses = (clone $baseQuery)
-                ->whereDate('gc.start_at', $todayDate)
-                ->where('gc.start_at', '>=', $startOfDay)
+                ->whereBetween('gc.start_at', [$tStart, $tEnd])
+                ->where('gc.start_at', '>=', $now)
                 ->tap($applySearch)
                 ->orderBy('gc.start_at')
                 ->limit(10)
@@ -155,9 +159,12 @@ class PageController extends Controller
 
             $todayClasses = collect();
             if (!$membershipExpired) {
+                $todayStart = Carbon::now('Asia/Jakarta')->startOfDay();
+                $todayEnd   = Carbon::now('Asia/Jakarta')->endOfDay();
+
                 $todayClasses = DB::table('gym_classes as gc')
                     ->select('gc.id', 'gc.title', 'gc.location', 'gc.start_at', 'gc.end_at', 'gc.capacity', 'gc.status')
-                    ->whereDate('gc.start_at', $today)
+                    ->whereBetween('gc.start_at', [$todayStart, $todayEnd])
                     ->selectSub(function ($query) {
                         $query->from('class_bookings as cb')
                             ->whereColumn('cb.class_id', 'gc.id')
@@ -430,9 +437,9 @@ class PageController extends Controller
         
         unset($payload['photo']);
 
-        // Fix format date
-        $payload['start_at'] = Carbon::parse($payload['start_at']);
-        $payload['end_at']   = Carbon::parse($payload['end_at']);
+        // Simpan apa adanya dalam zona Asia/Jakarta
+        $payload['start_at'] = Carbon::parse($payload['start_at'], 'Asia/Jakarta')->format('Y-m-d H:i:s');
+        $payload['end_at']   = Carbon::parse($payload['end_at'], 'Asia/Jakarta')->format('Y-m-d H:i:s');
 
         if ($request->hasFile('photo')) {
             $payload['photo'] = $request->file('photo')->store('class_photos', 'public');
@@ -468,9 +475,9 @@ class PageController extends Controller
         
         unset($payload['photo']);
 
-        // Fix format date
-        $payload['start_at'] = Carbon::parse($payload['start_at']);
-        $payload['end_at']   = Carbon::parse($payload['end_at']);
+        // Simpan apa adanya dalam zona Asia/Jakarta
+        $payload['start_at'] = Carbon::parse($payload['start_at'], 'Asia/Jakarta')->format('Y-m-d H:i:s');
+        $payload['end_at']   = Carbon::parse($payload['end_at'], 'Asia/Jakarta')->format('Y-m-d H:i:s');
 
         if ($request->hasFile('photo')) {
             $newPath = $request->file('photo')->store('class_photos', 'public');

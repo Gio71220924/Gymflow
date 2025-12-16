@@ -221,8 +221,8 @@
         @else
           @forelse($todayClasses as $class)
           @php
-            $start = Carbon::parse($class->start_at);
-            $end   = Carbon::parse($class->end_at);
+            $start = Carbon::parse($class->start_at)->timezone('Asia/Jakarta');
+            $end   = Carbon::parse($class->end_at)->timezone('Asia/Jakarta');
             $booked = (int) ($class->booked_count ?? 0);
             $capacity = (int) ($class->capacity ?? 0);
             $slotsLeft = max($capacity - $booked, 0);
