@@ -20,270 +20,135 @@
     <!-- DataTables v2 CSS -->
     <link rel="stylesheet"
           href="https://cdn.datatables.net/2.3.4/css/dataTables.dataTables.css">
-
-    <style>
-      :root{
-        /* Sidebar Dimensions */
-        --sidebar-w: 260px;
-        --sidebar-w-collapsed: 72px;
-        
-        /* Brand Colors */
-        --brand-primary: #FC7753;
-        --brand-dark: #28231C;
-        --brand-ink: #1f130c;
-        --brand-soft: #fff2ea;
-        
-        /* Neutral Colors */
-        --neutral-bg: #FAFAFA;
-        --neutral-card: #FFFFFF;
-        --neutral-border: #E5E5E5;
-        --neutral-text: #6B6B6B;
-        --neutral-light: #F5F5F5;
-        
-        /* Spacing System (8px grid) */
-        --space-1: 0.25rem;  /* 4px */
-        --space-2: 0.5rem;   /* 8px */
-        --space-3: 0.75rem;  /* 12px */
-        --space-4: 1rem;     /* 16px */
-        --space-5: 1.5rem;   /* 24px */
-        --space-6: 2rem;     /* 32px */
-        --space-8: 3rem;     /* 48px */
-        
-        /* Typography */
-        --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        --text-xs: 0.75rem;   /* 12px */
-        --text-sm: 0.875rem;  /* 14px */
-        --text-base: 1rem;    /* 16px */
-        --text-lg: 1.125rem;  /* 18px */
-        --text-xl: 1.25rem;   /* 20px */
-        --text-2xl: 1.5rem;   /* 24px */
-        
-        /* Shadows */
-        --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-        --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-        --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
-        
-        /* Border Radius */
-        --radius-sm: 8px;
-        --radius-md: 12px;
-        --radius-lg: 16px;
-      }
-
-      /* Global Styles */
-      * { box-sizing: border-box; }
-      html, body { 
-        height: 100%; 
-        font-family: var(--font-primary);
-        color: var(--brand-ink);
-      }
-      .layout { min-height: 100vh; }
-
-      /* Sidebar */
-      .sidebar {
-        width: var(--sidebar-w);
-        min-height: 100vh;
-        background: linear-gradient(180deg, var(--brand-dark) 0%, #1f1a15 100%);
-        color: #fff;
-        transition: width 0.25s ease;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        box-shadow: var(--shadow-lg);
-      }
-      .sidebar.collapsed {
-        width: var(--sidebar-w-collapsed) !important;
-      }
-
-      .sidebar .brand {
-        font-weight: 700;
-        font-size: var(--text-xl);
-        letter-spacing: -0.02em;
-      }
-
-      /* Navigation Links */
-      .sidebar .nav-link {
-        font-size: var(--text-base);
-        color: rgba(255,255,255,0.75);
-        border-radius: var(--radius-md);
-        padding: var(--space-3) var(--space-4);
-        margin-bottom: var(--space-2);
-        display: flex;
-        align-items: center;
-        gap: var(--space-3);
-        line-height: 1.2;
-        white-space: nowrap;
-        transition: all 0.2s ease;
-        font-weight: 500;
-      }
-      .sidebar .nav-link i {
-        font-size: 1.1rem;
-        margin-right: 0;
-        opacity: 0.9;
-      }
-      .sidebar .nav-link:hover {
-        color: #fff;
-        background: rgba(255,255,255,0.08);
-        transform: translateX(2px);
-      }
-      .sidebar .nav-link.active {
-        color: #fff;
-        background: rgba(252,119,83,0.15);
-        border-left: 3px solid var(--brand-primary);
-        padding-left: calc(var(--space-4) - 3px);
-      }
-
-      /* Collapsed State */
-      .sidebar .label { white-space: nowrap; }
-      .sidebar.collapsed .label { display: none; }
-      .sidebar.collapsed .nav-link { 
-        justify-content: center; 
-        gap: 0;
-        padding-left: var(--space-4);
-      }
-      .sidebar.collapsed .nav-link.active {
-        border-left: none;
-        border-left: 3px solid var(--brand-primary);
-        padding-left: calc(var(--space-4) - 3px);
-      }
-
-      /* Resize Handle */
-      .sidebar-resizer{
-        position: absolute;
-        top: 0; right: 0; bottom: 0;
-        width: 6px;
-        cursor: col-resize;
-        background: transparent;
-        transition: background 0.2s ease;
-      }
-      .sidebar-resizer:hover { 
-        background: rgba(252,119,83,0.2);
-      }
-      body.resizing {
-        cursor: col-resize !important;
-        user-select: none;
-      }
-
-      /* Main Content Area */
-      .content {
-        background: var(--neutral-bg);
-        min-width: 0;
-        padding: var(--space-6);
-      }
-
-      /* Page Header */
-      .page-header-title{
-        margin: 0;
-        font-weight: 700;
-        font-size: var(--text-2xl);
-        letter-spacing: -0.02em;
-        color: var(--brand-dark);
-      }
-      
-      /* Cards */
-      .card.shadow-sm {
-        border: 1px solid var(--neutral-border);
-        border-radius: var(--radius-lg);
-        background: var(--neutral-card);
-        box-shadow: var(--shadow-md);
-      }
-      .card-header {
-        background: transparent;
-        border-bottom: 1px solid var(--neutral-border);
-        padding: var(--space-5);
-        font-weight: 600;
-        color: var(--brand-dark);
-      }
-      .card-body {
-        padding: var(--space-6);
-      }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 
     @yield('styles')
   </head>
   <body>
     <div class="d-flex layout">
-      <!-- Sidebar kiri -->
       <aside class="sidebar p-3">
         <div>
-          <div class="d-flex align-items-center mb-4 px-2">
-            <i class="bi bi-barbell mr-2 text-warning" style="font-size:1.4rem;"></i>
-            <span class="brand label">GymFlow</span>
-          </div>
+          <a href="{{ route('home') }}" class="d-flex align-items-center mb-4 px-2 text-white text-decoration-none">
+            @if(!empty($appSettings['branding_logo']))
+              <img src="{{ asset('storage/branding/'.$appSettings['branding_logo']) }}" alt="Logo" style="height:32px;" class="mr-2">
+              <span class="brand label">{{ $appSettings['branding_name'] ?? 'GymFlow' }}</span>
+            @else
+              <i class="bi bi-activity mr-2 text-warning" style="font-size:1.3rem;"></i>
+              <span class="brand label">{{ $appSettings['branding_name'] ?? 'GymFlow' }}</span>
+            @endif
+          </a>
 
+          @php $role = Auth::user()->role ?? null; @endphp
           <nav class="nav flex-column">
-            <a class="nav-link {{ ($key ?? '') === 'home'    ? 'active' : '' }}" href="{{ route('home') }}">
-              <i class="bi bi-speedometer2"></i> <span class="label">Dashboard</span>
+            @if($role === \App\User::ROLE_SUPER_ADMIN)
+            <a class="nav-link {{ ($key ?? '') === 'home' ? 'active' : '' }}" href="{{ route('home') }}">
+              <i class="bi bi-speedometer2"></i>
+              <span class="label">Dashboard</span>
             </a>
-            <a class="nav-link {{ ($key ?? '') === 'member'  ? 'active' : '' }}" href="/member">
-              <i class="bi bi-people"></i> <span class="label">Member Management</span>
+            <a class="nav-link {{ ($key ?? '') === 'member' ? 'active' : '' }}" href="/member">
+              <i class="bi bi-people"></i>
+              <span class="label">Members</span>
             </a>
-            <a class="nav-link {{ ($key ?? '') === 'users'  ? 'active' : '' }}" href="/users">
-              <i class="bi bi-person-gear"></i> <span class="label">User Management</span>
+            <a class="nav-link {{ ($key ?? '') === 'trainers' ? 'active' : '' }}" href="{{ route('trainers.index') }}">
+              <i class="bi bi-person-badge"></i>
+              <span class="label">Instruktur</span>
+            </a>
+            <a class="nav-link {{ ($key ?? '') === 'users' ? 'active' : '' }}" href="/users">
+              <i class="bi bi-person-gear"></i>
+              <span class="label">Users</span>
             </a>
             <a class="nav-link {{ ($key ?? '') === 'class' ? 'active' : '' }}" href="/class">
-              <i class="bi bi-calendar-event"></i> <span class="label">Classes</span>
+              <i class="bi bi-calendar-event"></i>
+              <span class="label">Classes</span>
             </a>
             <a class="nav-link {{ ($key ?? '') === 'billing' ? 'active' : '' }}" href="/billing">
-              <i class="bi bi-receipt"></i> <span class="label">Billing</span>
+              <i class="bi bi-receipt"></i>
+              <span class="label">Billing</span>
             </a>
-            <a class="nav-link {{ ($key ?? '') === 'settings'? 'active' : '' }}" href="/settings">
-              <i class="bi bi-gear"></i> <span class="label">Settings</span>
+            <a class="nav-link {{ ($key ?? '') === 'settings' ? 'active' : '' }}" href="/settings">
+              <i class="bi bi-gear"></i>
+              <span class="label">Settings</span>
             </a>
+            @else
+            <a class="nav-link {{ ($key ?? '') === 'user-home' ? 'active' : '' }}" href="{{ route('home') }}">
+              <i class="bi bi-house"></i>
+              <span class="label">Beranda</span>
+            </a>
+            <a class="nav-link {{ ($key ?? '') === 'class' ? 'active' : '' }}" href="/class">
+              <i class="bi bi-calendar-event"></i>
+              <span class="label">Jadwal</span>
+            </a>
+            <a class="nav-link {{ ($key ?? '') === 'billing' ? 'active' : '' }}" href="/billing">
+              <i class="bi bi-receipt"></i>
+              <span class="label">Tagihan</span>
+            </a>
+            <a class="nav-link {{ ($key ?? '') === 'change-password' ? 'active' : '' }}" href="{{ route('change-password') }}">
+              <i class="bi bi-person"></i>
+              <span class="label">Profil</span>
+            </a>
+            @endif
           </nav>
         </div>
 
         <div>
-          <div class="border-top border-light pt-3 px-2">
-            <div class="media align-items-center">
-              <img src="https://preview.redd.it/u7lozj3xywo91.jpg?width=1080&crop=smart&auto=webp&s=3031b3dd9263f0cc01ccf4c567d5fb73373da915"
-                   class="mr-2 rounded-circle" width="36" height="36" alt="pp">
-              <div class="media-body">
-                <small class="d-block label">Admin Name</small>
-                <small class="text-muted label">Gym Administrator</small>
+          <div class="user-profile">
+            <div class="d-flex align-items-center mb-2">
+              @php
+                $userPhoto = optional(Auth::user()->memberGym)->foto_profil;
+              @endphp
+              @if($userPhoto)
+                <img src="{{ asset('storage/foto_profil/' . $userPhoto) }}" alt="{{ Auth::user()->name }}">
+              @else
+                <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=FC7753&color=fff&size=128" alt="{{ Auth::user()->name }}">
+              @endif
+              <div class="ml-2 label">
+                <div class="user-info">{{Auth::user()->name}}</div>
+                <div class="user-role">{{Auth::user()->role}}</div>
               </div>
             </div>
           </div>
-          <a class="nav-link mt-2" href="#"><i class="bi bi-box-arrow-right mr-1"></i> <span class="label">Log Out</span></a>
+          <div class="profile-actions">
+            <a href="{{ route('change-password') }}" class="btn-profile-action btn btn-link d-flex align-items-center">
+              <i class="bi bi-key mr-2"></i>
+              <span class="label">Ubah Password</span>
+            </a>
+            <form action="{{ route('logout') }}" method="POST">
+              @csrf
+              <button type="submit" class="btn-logout btn btn-link d-flex align-items-center">
+                <i class="bi bi-box-arrow-right mr-2"></i>
+                <span class="label">Log Out</span>
+              </button>
+            </form>
+          </div>
         </div>
 
-        <!-- Handle untuk drag-resize -->
         <div class="sidebar-resizer" title="Drag to resize"></div>
       </aside>
 
-      <!-- Konten kanan -->
       <main class="content flex-fill">
-        <!-- Heading + tombol toggle sidebar -->
-        <header class="mb-3 d-flex align-items-center justify-content-between">
-          <div class="d-flex align-items-center">
-            <button id="sidebarToggle"
-                    class="btn btn-sm btn-outline-secondary mr-2"
-                    type="button"
-                    aria-label="Toggle sidebar"
-                    aria-expanded="true">
-              <i id="sidebarToggleIcon" class="bi bi-layout-sidebar-inset"></i>
-            </button>
-            <h1 class="page-header-title">
-              @yield('page_heading', 'Member Management')
-            </h1>
-          </div>
-          <div></div>
+        <header class="page-header d-flex align-items-center">
+          <button id="sidebarToggle" class="btn-toggle mr-3" type="button" aria-label="Toggle sidebar" aria-expanded="true">
+            <i id="sidebarToggleIcon" class="bi bi-layout-sidebar-inset"></i>
+          </button>
+          <button id="themeToggle" class="btn-toggle mr-2" type="button" aria-label="Toggle theme">
+            <i id="themeToggleIcon" class="bi bi-moon-stars"></i>
+          </button>
+          <h1 class="page-header-title">@yield('page_heading', 'Dashboard')</h1>
         </header>
 
-        <!-- Toolbar opsional (search/filter) -->
-        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-          <div class="d-flex flex-wrap">
-            @yield('toolbar')
-          </div>
-          <div></div>
+        @hasSection('toolbar')
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          @yield('toolbar')
         </div>
+        @endif
 
-        <!-- Card utama berisi judul + aksi + konten -->
         <div class="card shadow-sm">
+          @if(View::hasSection('card_title') || View::hasSection('card_actions'))
           <div class="card-header d-flex justify-content-between align-items-center">
             <div>@yield('card_title')</div>
             <div>@yield('card_actions')</div>
           </div>
+          @endif
           <div class="card-body">
             @yield('content')
           </div>
@@ -312,6 +177,10 @@
         const resizer = document.querySelector('.sidebar-resizer');
         const btn = document.getElementById('sidebarToggle');
         const btnIcon = document.getElementById('sidebarToggleIcon');
+        const themeToggle = document.getElementById('themeToggle');
+        const themeToggleIcon = document.getElementById('themeToggleIcon');
+        const root = document.documentElement;
+        const THEME_KEY = 'uiTheme';
 
         // ===== DataTables auto-init + simpan instance untuk penyesuaian lebar
         window._dtInstances = [];
@@ -336,6 +205,34 @@
             window.dispatchEvent(new Event('resize'));
           }
         }
+
+        // ===== Theme toggle
+        function setThemeIcon(theme) {
+          if (!themeToggleIcon) return;
+          themeToggleIcon.classList.remove('bi-brightness-high', 'bi-moon-stars');
+          if (theme === 'dark') {
+            themeToggleIcon.classList.add('bi-brightness-high');
+            themeToggle?.setAttribute('aria-label', 'Switch to light mode');
+          } else {
+            themeToggleIcon.classList.add('bi-moon-stars');
+            themeToggle?.setAttribute('aria-label', 'Switch to dark mode');
+          }
+        }
+        function applyTheme(theme) {
+          const normalized = theme === 'dark' ? 'dark' : 'light';
+          root.setAttribute('data-theme', normalized);
+          localStorage.setItem(THEME_KEY, normalized);
+          setThemeIcon(normalized);
+          // sesuaikan tabel setelah repaint
+          setTimeout(adjustTables, 50);
+        }
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const savedTheme = localStorage.getItem(THEME_KEY);
+        applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+        themeToggle?.addEventListener('click', function () {
+          const current = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+          applyTheme(current === 'dark' ? 'light' : 'dark');
+        });
 
         // ===== Persist state
         const savedCollapsed = localStorage.getItem('sidebarCollapsed') === '1';

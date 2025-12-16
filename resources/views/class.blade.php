@@ -1,4 +1,503 @@
 @extends('layouts.main')
 @section('title', 'Class Management')
 @section('page_heading', 'Class Management')
+@section('card_title', 'Class Schedule')
+
 @section('content')
+  <div class="card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="card-title mb-0">Jadwal Kelas</h5>
+        @if($isAdmin ?? false)
+          <a href="{{ route('class.create') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i> Tambah Kelas
+          </a>
+        @endif
+      </div>
+
+      @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      @endif
+      @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      @endif
+
+      {{-- Search bar method get --}}
+      <form action="{{ route('class') }}" method="GET" class="mb-3">
+        <div class="form-row align-items-center">
+          <div class="col-12 col-md-6 col-lg-5 mb-2 mb-md-0">
+            <input type="text" class="form-control" name="q" id="q"
+                  placeholder="Cari: judul kelas/Nama instruktur/lokasi/Status"
+                  value="{{ $searchQuery ?? '' }}">
+          </div>
+
+          <div class="col-auto mb-2 mb-md-0">
+            <select name="per_page" class="form-control" onchange="this.form.submit()">
+              @foreach([10, 20, 50] as $size)
+                <option value="{{ $size }}" {{ (int)($perPage ?? 10) === $size ? 'selected' : '' }}>
+                  {{ $size }} / halaman
+                </option>
+              @endforeach
+            </select>
+          </div>
+
+          <div class="col-auto mb-2 mb-md-0">
+            <select name="sort" class="form-control" onchange="this.form.submit()">
+              <option value="terbaru" {{ ($sort ?? 'terbaru') === 'terbaru' ? 'selected' : '' }}>Terbaru dulu</option>
+              <option value="terlama" {{ ($sort ?? 'terbaru') === 'terlama' ? 'selected' : '' }}>Terlama dulu</option>
+              <option value="premium_only" {{ ($sort ?? '') === 'premium_only' ? 'selected' : '' }}>Premium only</option>
+            </select>
+          </div>
+
+          <div class="col-auto d-flex align-items-center flex-wrap" style="gap:8px; white-space: nowrap;">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+            <a href="{{ route('class') }}" class="btn btn-light btn-sm">Reset</a>
+            @if($isUser ?? false)
+              <button class="btn btn-outline-primary btn-sm" type="button" data-toggle="collapse" data-target="#oneononeForm" aria-expanded="false" aria-controls="oneononeForm">
+                Ajukan sesi one-on-one
+              </button>
+            @endif
+          </div>
+        </div>
+
+        @if(!empty($searchQuery))
+          <small class="text-muted d-block mt-2">
+            Menampilkan hasil untuk keyword: "{{ $searchQuery }}"
+          </small>
+        @endif
+      </form>
+
+
+      @if($isUser ?? false)
+        <div class="collapse mb-3" id="oneononeForm">
+          <div class="card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap:8px;">
+                <h6 class="mb-0">Form ajukan sesi one-on-one</h6>
+                <button class="btn btn-sm btn-light" type="button" data-toggle="collapse" data-target="#oneononeForm">Tutup</button>
+              </div>
+              @if($errors->any())
+                <div class="alert alert-warning">Periksa input pengajuan: {{ $errors->first() }}</div>
+              @endif
+              @php
+                $locationOptions = [
+                  'Studio A',
+                  'Studio B',
+                  'Ruang privat',
+                  'Outdoor',
+                ];
+              @endphp
+              <form action="{{ route('oneonone.store') }}" method="POST">
+                @csrf
+                <div class="form-row">
+                  <div class="form-group col-md-4">
+                    <label>Tanggal</label>
+                    <input type="date" name="preferred_date" class="form-control @error('preferred_date') is-invalid @enderror" value="{{ old('preferred_date', now()->format('Y-m-d')) }}" min="{{ now()->format('Y-m-d') }}" required>
+                    @error('preferred_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label>Waktu</label>
+                    <input type="time" name="preferred_time" class="form-control @error('preferred_time') is-invalid @enderror" value="{{ old('preferred_time', '09:00') }}" min="07:00" max="18:00" required>
+                    @error('preferred_time') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label>Instruktur</label>
+                    <select name="trainer_id" class="form-control @error('trainer_id') is-invalid @enderror" required>
+                      <option value="">Pilih instruktur</option>
+                      @forelse($trainers as $trainer)
+                        <option value="{{ $trainer->id }}" {{ old('trainer_id') == $trainer->id ? 'selected' : '' }}>{{ $trainer->name }}</option>
+                      @empty
+                        <option value="" disabled>Belum ada instruktur aktif</option>
+                      @endforelse
+                    </select>
+                    @error('trainer_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label>Tempat</label>
+                    <select name="location" class="form-control @error('location') is-invalid @enderror" required>
+                      <option value="">Pilih lokasi</option>
+                      @php $selectedLoc = old('location'); @endphp
+                      @foreach($locationOptions as $loc)
+                        <option value="{{ $loc }}" {{ $selectedLoc === $loc ? 'selected' : '' }}>{{ $loc }}</option>
+                      @endforeach
+                    </select>
+                    @error('location') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label>Catatan (opsional)</label>
+                    <textarea name="note" rows="2" class="form-control @error('note') is-invalid @enderror" placeholder="Tujuan latihan, fokus area, dll.">{{ old('note') }}</textarea>
+                    @error('note') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Ajukan sesi</button>
+              </form>
+
+              <div class="mt-3">
+                <h6 class="mb-2">Status pengajuan</h6>
+                <div class="table-responsive">
+                  <table class="table table-sm mb-0">
+                    <thead class="thead-light">
+                      <tr>
+                        <th>Tanggal</th>
+                        <th>Instruktur</th>
+                        <th>Status</th>
+                        <th>Catatan</th>
+                        <th>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @forelse($oneOnOneRequests as $req)
+                        @php
+                          $badgeClass = $req->status === 'approved' ? 'success' : ($req->status === 'rejected' ? 'danger' : 'warning');
+                          $isPending = $req->status === 'pending';
+                          $editId = 'edit-oor-' . $req->id;
+                        @endphp
+                        <tr>
+                          <td>{{ \Carbon\Carbon::parse($req->preferred_date)->format('d M Y') }}<br><small class="text-muted">{{ $req->preferred_time }}</small></td>
+                          <td>{{ $req->trainer_name ?? '-' }}</td>
+                          <td><span class="badge badge-soft {{ $badgeClass }}">{{ ucfirst($req->status) }}</span></td>
+                          <td>
+                            <div class="text-truncate" style="max-width:180px;">{{ $req->note ?: '-' }}</div>
+                            @if(!empty($req->admin_note))
+                              <div class="text-muted small">Admin: {{ $req->admin_note }}</div>
+                            @endif
+                          </td>
+                          <td>
+                            @if($isPending)
+                              <button class="btn btn-link btn-sm px-0" type="button" data-toggle="collapse" data-target="#{{ $editId }}">Ubah</button>
+                              <form action="{{ route('oneonone.destroy', $req->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Batalkan pengajuan ini?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-link btn-sm text-danger px-0 ml-2">Batalkan</button>
+                              </form>
+                            @else
+                              <span class="text-muted small">Terkunci</span>
+                            @endif
+                          </td>
+                        </tr>
+                        @if($isPending)
+                        <tr class="collapse" id="{{ $editId }}">
+                          <td colspan="5">
+                            <form action="{{ route('oneonone.update', $req->id) }}" method="POST">
+                              @csrf
+                              @method('PATCH')
+                              <div class="form-row">
+                                <div class="form-group col-md-3">
+                                  <label>Tanggal</label>
+                                  <input type="date" name="preferred_date" class="form-control form-control-sm" value="{{ old('preferred_date_'.$req->id, $req->preferred_date) }}" min="{{ now()->format('Y-m-d') }}" required>
+                                </div>
+                                <div class="form-group col-md-2">
+                                  <label>Waktu</label>
+                                  <input type="time" name="preferred_time" class="form-control form-control-sm" value="{{ old('preferred_time_'.$req->id, $req->preferred_time) }}" min="07:00" max="18:00" required>
+                                </div>
+                                <div class="form-group col-md-3">
+                                  <label>Tempat</label>
+                                  <select name="location" class="form-control form-control-sm" required>
+                                    @foreach($locationOptions as $loc)
+                                      <option value="{{ $loc }}" {{ (old('location_'.$req->id, $req->location) === $loc) ? 'selected' : '' }}>{{ $loc }}</option>
+                                    @endforeach
+                                  </select>
+                                </div>
+                                <div class="form-group col-md-2">
+                                  <label>Instruktur</label>
+                                  <select name="trainer_id" class="form-control form-control-sm" required>
+                                    @foreach($trainers as $trainer)
+                                      <option value="{{ $trainer->id }}" {{ (old('trainer_id_'.$req->id, $req->trainer_id) == $trainer->id) ? 'selected' : '' }}>{{ $trainer->name }}</option>
+                                    @endforeach
+                                  </select>
+                                </div>
+                                <div class="form-group col-md-2">
+                                  <label>&nbsp;</label>
+                                  <button type="submit" class="btn btn-primary btn-sm btn-block">Simpan</button>
+                                </div>
+                              </div>
+                            </form>
+                          </td>
+                        </tr>
+                        @endif
+                      @empty
+                        <tr>
+                          <td colspan="5" class="text-muted text-center">Belum ada pengajuan.</td>
+                        </tr>
+                      @endforelse
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      @endif
+
+      @php
+        $storageTimezone = config('app.timezone', 'UTC');
+        $displayTimezone = 'Asia/Jakarta'; // GMT+7
+      @endphp
+
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover w-100 mb-0">
+          <thead class="thead-light">
+            <tr>
+              <th>Kelas</th>
+              <th>Instruktur</th>
+              <th>Tanggal</th>
+              <th>Waktu</th>
+              <th>Kapasitas</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse(($classes ?? []) as $class)
+              @php
+                $start = \Carbon\Carbon::parse($class->start_at, $storageTimezone)->setTimezone($displayTimezone);
+                $end   = \Carbon\Carbon::parse($class->end_at, $storageTimezone)->setTimezone($displayTimezone);
+                $startObj = $start->copy();
+                $bookedCount = (int) ($class->booked_count ?? 0);
+                $isFull = $bookedCount >= ($class->capacity ?? 0);
+                $userBookingStatus = $class->user_booking_status ?? null;
+                $classParticipants = ($participants ?? collect())->get($class->id, collect());
+                $normalizedStatus = strtolower(trim((string) $class->status));
+                $accessType = strtolower($class->access_type ?? 'all');
+                $isPremiumOnly = $accessType === 'premium_only';
+                $nowJakarta = \Carbon\Carbon::now($displayTimezone);
+                $basicOpenAt = $start->copy()->subHours($bookingWindowHours ?? 48);
+                $basicTooEarly = !$isPremiumMember && !$isPremiumOnly && $nowJakarta->lt($basicOpenAt);
+                $blockedByAccess = $isPremiumOnly && !$isPremiumMember;
+                if ($startObj->isFuture() && $normalizedStatus === 'done') {
+                  $normalizedStatus = 'scheduled'; // data bisa out-of-sync, anggap masih berjalan
+                }
+                $isPast = $startObj->isPast();
+                $canJoin = !in_array($normalizedStatus, ['cancelled', 'done'], true)
+                  && !$isFull
+                  && !$isPast
+                  && !$basicTooEarly
+                  && !$blockedByAccess;
+                $statusClass = [
+                  'scheduled' => 'primary',
+                  'done'      => 'success',
+                  'cancelled' => 'danger',
+                ][$normalizedStatus] ?? 'secondary';
+                $statusLabel = ucfirst($normalizedStatus);
+              @endphp
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center" style="min-width: 200px;">
+                    <div class="flex-shrink-0 mr-3" style="height:60px; width:90px; border-radius:6px; overflow:hidden; border:1px solid #e9ecef; background-color: #f8f9fa;">
+                      <img src="{{ !empty($class->photo) ? asset('storage/' . $class->photo) : asset('images/noimage.png') }}" alt="{{ $class->title }}" style="width:100%; height:100%; object-fit:contain;">
+                    </div>
+                    <div>
+                      <div class="font-weight-bold d-flex align-items-center" style="gap:6px;">
+                        <span>{{ $class->title }}</span>
+                        @if($isPremiumOnly)
+                          <span class="badge badge-warning">Premium only</span>
+                        @endif
+                      </div>
+                      @if(!empty($class->location))
+                        <div class="text-muted small">{{ $class->location }}</div>
+                      @endif
+                    </div>
+                  </div>
+                </td>
+                <td>{{ $class->trainer_name ?? 'Belum ada instruktur' }}</td>
+                <td>{{ $start->format('Y-m-d') }}</td>
+                <td>
+                  {{ $start->format('H:i') }} - {{ $end->format('H:i') }}
+                  <div class="text-muted small">GMT+7 (WIB)</div>
+                </td>
+                <td>
+                  <div class="font-weight-bold">{{ $bookedCount }} / {{ $class->capacity }}</div>
+                  <div class="text-muted small">Tersisa {{ max(($class->capacity ?? 0) - $bookedCount, 0) }} slot</div>
+                </td>
+                <td>
+                  <span class="badge badge-{{ $statusClass }}">{{ $statusLabel }}</span>
+                </td>
+                <td>
+                  @if($isAdmin ?? false)
+                    <div class="d-flex align-items-center flex-wrap" style="gap:8px;">
+                      <a class="btn btn-sm btn-outline-primary" href="{{ route('class.edit', $class->id) }}">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <form action="{{ route('class.destroy', $class->id) }}" method="POST" onsubmit="return confirm('Hapus kelas ini?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                    </div>
+                    <div class="border rounded p-2 mt-2">
+                      <div class="small font-weight-bold mb-1">Peserta ({{ $classParticipants->count() }})</div>
+                      @forelse($classParticipants as $participant)
+                        <div class="d-flex align-items-center justify-content-between small py-1 border-top">
+                          <span>
+                            {{ $participant->nama_member }}
+                            <span class="badge badge-light text-muted">{{ ucfirst(str_replace('_', ' ', $participant->status)) }}</span>
+                          </span>
+                          <form action="{{ route('class.kick', [$class->id, $participant->booking_id]) }}" method="POST" onsubmit="return confirm('Kick peserta ini?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">Kick</button>
+                          </form>
+                        </div>
+                      @empty
+                        <div class="text-muted small">Belum ada peserta.</div>
+                      @endforelse
+                    </div>
+                  @else
+                    @if($userBookingStatus && $userBookingStatus !== 'cancelled')
+                      <div class="d-flex align-items-center" style="gap:10px;">
+                        <span class="badge badge-success">Sudah bergabung</span>
+                        <form action="{{ route('class.cancel', $class->id) }}" method="POST">
+                          @csrf
+                          <button type="submit" class="btn btn-sm btn-outline-danger">Batalkan</button>
+                        </form>
+                      </div>
+                    @else
+                      <form action="{{ route('class.join', $class->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-primary" {{ $canJoin ? '' : 'disabled' }}>
+                          @if(!$canJoin)
+                            @if($blockedByAccess)
+                              Khusus Premium
+                            @elseif($basicTooEarly)
+                              Belum dibuka
+                            @elseif($isFull)
+                              Kelas Penuh
+                            @else
+                              Tidak Tersedia
+                            @endif
+                          @else
+                            Gabung Kelas
+                          @endif
+                        </button>
+                        @if($isFull)
+                          <div class="text-muted small mt-1">Slot penuh, pilih jadwal lain.</div>
+                        @elseif($isPast)
+                          <div class="text-muted small mt-1">Kelas sudah lewat, tidak dapat dibooking.</div>
+                        @elseif(in_array($normalizedStatus, ['cancelled','done'], true))
+                          <div class="text-muted small mt-1">Kelas tidak dapat dibooking.</div>
+                        @elseif($blockedByAccess)
+                          <div class="text-muted small mt-1">Hanya member Premium yang dapat bergabung.</div>
+                        @elseif($basicTooEarly)
+                          <div class="text-muted small mt-1">Member Basic dapat booking mulai {{ $basicOpenAt->format('d M Y H:i') }}.</div>
+                        @endif
+                      </form>
+                    @endif
+                  @endif
+                </td>
+              </tr>
+            @empty
+              <tr>
+                <td colspan="7" class="text-center text-muted">Belum ada jadwal kelas.</td>
+              </tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+
+      {{-- Pagination --}}
+      @if(isset($classes) && method_exists($classes, 'links'))
+        <div class="mt-3">
+          {{ $classes->appends([
+            'q'        => $searchQuery ?? '',
+            'per_page' => $perPage ?? 10,
+          ])->links() }}
+        </div>
+      @endif
+
+      @if(($isAdmin ?? false) && isset($oneOnOneRequests))
+        <hr class="my-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Pengajuan sesi one-on-one</h5>
+          <span class="badge badge-light">Pending: {{ $oneOnOneRequests->where('status', 'pending')->count() }}</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead class="thead-light">
+              <tr>
+                <th>Member</th>
+                <th>Instruktur</th>
+                <th>Tanggal</th>
+                <th>Lokasi</th>
+                <th>Catatan</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($oneOnOneRequests as $req)
+                @php
+                  $badgeClass = $req->status === 'approved' ? 'success' : ($req->status === 'rejected' ? 'danger' : 'warning');
+                @endphp
+                <tr>
+                  <td>
+                    <div class="font-weight-bold">{{ $req->nama_member ?? '-' }}</div>
+                    <div class="text-muted small">{{ $req->email_member ?? '' }}</div>
+                  </td>
+                  <td>{{ $req->trainer_name ?? '-' }}</td>
+                  <td>
+                    {{ \Carbon\Carbon::parse($req->preferred_date)->format('d M Y') }}
+                    <div class="text-muted small">{{ $req->preferred_time }}</div>
+                  </td>
+                  <td>{{ $req->location }}</td>
+                  <td>
+                    <div class="text-truncate" style="max-width:200px;">{{ $req->note ?: '-' }}</div>
+                    @if($req->admin_note)
+                      <div class="text-muted small">Admin: {{ $req->admin_note }}</div>
+                    @endif
+                  </td>
+                  <td><span class="badge badge-soft {{ $badgeClass }}">{{ ucfirst($req->status) }}</span></td>
+                  <td>
+                    @if($req->status === 'pending')
+                      <form action="{{ route('oneonone.approve', $req->id) }}" method="POST" class="mb-1">
+                        @csrf
+                        <div class="input-group input-group-sm">
+                          <input type="text" name="admin_note" class="form-control" placeholder="Catatan (opsional)">
+                          <div class="input-group-append">
+                            <button class="btn btn-success" type="submit">ACC</button>
+                          </div>
+                        </div>
+                      </form>
+                      <form action="{{ route('oneonone.reject', $req->id) }}" method="POST">
+                        @csrf
+                        <div class="input-group input-group-sm">
+                          <input type="text" name="admin_note" class="form-control" placeholder="Catatan tolak (opsional)">
+                          <div class="input-group-append">
+                            <button class="btn btn-outline-danger" type="submit">Tolak</button>
+                          </div>
+                        </div>
+                      </form>
+                    @else
+                      <div class="text-muted small">Diproses oleh {{ $req->admin_name ?? '-' }}</div>
+                    @endif
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="7" class="text-center text-muted">Belum ada pengajuan one-on-one.</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      @endif
+    </div>
+  </div>
+@endsection
+
+@section('scripts')
+  <script src="{{ asset('js/oneonone.js') }}"></script>
+@endsection

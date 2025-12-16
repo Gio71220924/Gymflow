@@ -16,7 +16,8 @@ return [
     |
     */
 
-    'driver' => env('MAIL_DRIVER', 'smtp'),
+    // Laravel 6 default: MAIL_DRIVER, modern: MAIL_MAILER. Support both.
+    'driver' => env('MAIL_MAILER', env('MAIL_DRIVER', 'smtp')),
 
     /*
     |--------------------------------------------------------------------------
@@ -56,8 +57,9 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        // Paksa fallback ke alamat bawaan agar tidak kembali ke sandbox@mtrgt.net
+        'address' => env('MAIL_FROM_ADDRESS', 'hello@demomailtrap.com'),
+        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'GymFlow')),
     ],
 
     /*
@@ -72,6 +74,24 @@ return [
     */
 
     'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stream Options (TLS/SSL)
+    |--------------------------------------------------------------------------
+    |
+    | Untuk lingkungan lokal yang memakai sertifikat self-signed atau CA bundle
+    | bermasalah, Anda bisa mematikan verifikasi. Gunakan hanya di development.
+    |
+    */
+
+    'stream' => [
+        'ssl' => [
+            'allow_self_signed' => true,
+            'verify_peer'       => false,
+            'verify_peer_name'  => false,
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------

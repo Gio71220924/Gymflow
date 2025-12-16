@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use App\User;
+use App\MemberMembership;
 
 class Member_Gym extends Model
 {
@@ -31,5 +32,20 @@ class Member_Gym extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function memberMemberships()
+    {
+        return $this->hasMany(MemberMembership::class, 'member_id');
+    }
+
+    public function activeMembership()
+    {
+        return $this->hasOne(MemberMembership::class, 'member_id')->where('status', 'aktif')->latest('id');
+    }
+
+    public function latestMembership()
+    {
+        return $this->hasOne(MemberMembership::class, 'member_id')->latest('id');
     }
 }
