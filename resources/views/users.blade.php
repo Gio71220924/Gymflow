@@ -4,12 +4,6 @@
 @section('page_heading', 'User Management')
 @section('card_title', 'Daftar Users')
 
-@section('card_actions')
-  <a href="{{ route('users.create') }}" class="btn btn-orange btn-sm">
-    <i class="bi bi-plus-circle-fill"></i> Tambah User
-  </a>
-@endsection
-
 @section('content')
 
   @if(session('success'))
@@ -38,7 +32,7 @@
   <table class="table table-striped table-bordered w-100 mb-0" data-datatable>
     <thead class="thead-light">
       <tr>
-        <th>ID</th>
+        <th>No</th>
         <th>Nama</th>
         <th>Email</th>
         <th>Role</th>
@@ -50,7 +44,7 @@
     <tbody>
       @forelse($users as $user)
         <tr>
-          <td>{{ $user->id }}</td>
+          <td>{{ $loop->iteration }}</td>
           <td>{{ $user->name }}</td>
           <td>{{ $user->email }}</td>
           <td>{{ $user->role }}</td>
@@ -68,13 +62,7 @@
         </tr>
       @empty
         <tr>
-          <td class="text-center text-muted">Belum ada data user.</td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
+          <td class="text-center text-muted" colspan="7">Belum ada data user.</td>
         </tr>
       @endforelse
     </tbody>

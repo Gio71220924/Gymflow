@@ -65,8 +65,6 @@ Route::group(['middleware' => ['auth','verified','profile.complete']], function 
 
     // Users (CRUD by admin)
     Route::get('/users', [UserController::class, 'getuser'])->name('users.index');
-    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
     
     // Change Password

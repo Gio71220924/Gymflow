@@ -52,7 +52,7 @@
     <table id="membergym" class="table table-striped table-bordered w-100 mb-0" data-datatable>
       <thead class="thead-light">
         <tr>
-          <th>ID</th>
+          <th>No</th>
           <th>ID Member</th>
           <th>Nama</th>
           <th>Email</th>
@@ -73,7 +73,7 @@
       <tbody>
         @forelse($members as $m)
           <tr>
-            <td>{{ $m->id }}</td>
+            <td>{{ $loop->iteration }}</td>
             <td>{{ $m->id_member }}</td>
             <td>{{ $m->nama_member }}</td>
             <td>{{ $m->email_member }}</td>
@@ -113,22 +113,7 @@
           </tr>
         @empty
           <tr>
-            <td class="text-center text-muted">Belum ada data member.</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td class="text-center text-muted" colspan="16">Belum ada data member.</td>
           </tr>
         @endforelse
       </tbody>
