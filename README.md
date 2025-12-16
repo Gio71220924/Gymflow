@@ -39,7 +39,7 @@ Gymflow adalah sistem manajemen gym berbasis web yang dirancang untuk membantu p
 
 ### Prasyarat
 
-- PHP >= 8.0
+- Laravel 6
 - Composer
 - NPM
 - MySQL/MariaDB
